@@ -1,0 +1,262 @@
+<app-header (toggleSidebar)="toggleSidebar()"></app-header>
+
+<div class="main-container">
+  <app-sidebar [collapsed]="sidebarCollapsed"></app-sidebar>
+
+  <div class="content-area">
+    <!-- <div class="workspace" [ngClass]="{'split-40-60': layoutSplit==='40-60', 'split-50-50': '50-50'}"> -->
+    <div class="workspace" [ngClass]="{'split-40-60': layoutSplit==='40-60', 'split-50-50': layoutSplit==='50-50'}">
+
+
+      <!-- =========================
+           SECCIÓN 1: TARGET
+      ==========================-->
+      <section class="card" style="padding:16px;">
+        <h2>Target</h2>
+
+        <div style="display:grid; grid-template-columns: 1fr 1.3fr; gap:16px; align-items:start;">
+          <div>
+            <section class="card" style="margin:0 0 12px 0;">
+              <h3>Selector de Área (Target)</h3>
+              <app-region-selector
+                (regionSelected)="onRegionSelected($event)"
+                (resolutionSelected)="onResolutionSelected($event)"
+                (gridIdSelected)="onGridIdSelected($event)">
+              </app-region-selector>
+            </section>
+            <taxon-scope>
+              <section class="card" style="margin:0 0 12px 0;">
+                <h3>Selector Taxonómico (Target)</h3>
+                <taxon-selector (speciesSelected)="onSpeciesSelected($event)"></taxon-selector>
+              </section>
+
+              <section class="card" style="margin:0;">
+                <h3>Navegador Taxonómico (Target)</h3>
+                <taxon-navigator (selectionChange)="onNavigatorSelectionChange($event)"></taxon-navigator>
+              </section>
+            </taxon-scope>
+          </div>
+
+          <!-- Mapa Target -->
+          <div>
+            <section class="map-card" style="margin:0;">
+              <h3>Mapa de Presencia (Target)</h3>
+              <div class="map-wrap" style="position:relative; height:420px;">
+                <app-mapa-maplibre
+                  style="display:block; height:100%"
+                  [mapId]="'map-target'"
+                  [gridId]="gridId!"
+                  [occValues]="occValues"
+                  [run]="runStamp"
+                  [showLayerControl]="true"
+                  [controlBaseLayer]="true"
+                  [controlScoreLayer]="false"
+                  [loading]="isAnalyzingOcc">
+                </app-mapa-maplibre>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <section class="card" *ngIf="showValidation" style="margin-top:12px;">
+          <div class="alert-warning">
+            <ul><li *ngFor="let msg of validationMessages">{{ msg }}</li></ul>
+          </div>
+        </section>
+
+        <div class="card actions" style="margin-top:12px; text-align:center;">
+          <button class="btn-primary" type="button"
+                  (click)="onVisualize()"
+                  [disabled]="isAnalyzingOcc"
+                  [attr.aria-busy]="isAnalyzingOcc ? 'true' : 'false'">
+            {{ isAnalyzingOcc ? 'Procesando…' : 'Visualizar (Target)' }}
+          </button>
+        </div>
+      </section>
+
+      <!-- =========================
+           SECCIÓN 2: COVARIABLES
+      ==========================-->
+      <section class="card" style="padding:16px; margin-top:16px;">
+        <h2>Covariables</h2>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div>
+            <taxon-scope>
+              <section class="card" style="margin:0;">
+                <h3>Selector Taxonómico</h3>
+                <taxon-selector (speciesSelected)="onSpeciesSelected2($event)"></taxon-selector>
+              </section>
+              <section class="card" style="margin:0;">
+                <h3>Navegador Taxonómico</h3>
+                <taxon-navigator (selectionChange)="onNavigatorSelectionChange2($event)"></taxon-navigator>
+              </section>
+            </taxon-scope>
+          </div>
+        </div>
+
+        <div class="card actions" style="margin-top:12px; text-align:center;">
+          <button class="btn-primary" type="button"
+                  (click)="onVisualizeNicho()"
+                  [disabled]="isAnalyzingNiche"
+                  [attr.aria-busy]="isAnalyzingNiche ? 'true' : 'false'">
+            {{ isAnalyzingNiche ? 'Procesando…' : 'Visualizar Análisis de Nicho' }}
+          </button>
+        </div>
+
+        <!-- Mapa Nicho -->
+        <div class="map-card" style="margin-top:12px;">
+          <h3>Mapa de Análisis de Nicho</h3>
+          <div class="map-wrap" style="position:relative; height:420px;">
+            <app-mapa-maplibre
+              #mapNiche
+              style="display:block; height:100%"
+              [mapId]="'map-covars'"
+              [showLayerControl]="true"
+              [controlBaseLayer]="false"
+              [controlScoreLayer]="true"
+              [loading]="isAnalyzingNiche"
+              (epsScrRelReady)="onEpsScrRelReady($event)">
+            </app-mapa-maplibre>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- Histograma: promedio de score por decil -->
+      <!-- <section class="card" *ngIf="decileHistogramData?.length">
+        <ui-histogram-chart
+          [useCustomData]="true"
+          [customData]="decileHistogramData"
+          [height]="300"
+          title="Promedio de score por decil"
+          xLabel="Decil"
+          yLabel="Score promedio por celda">
+        </ui-histogram-chart>
+      </section> -->
+
+      <!-- Histograma: promedio de score por decil -->
+    <section class="card" *ngIf="decileHistogramData?.length">
+      <!-- <h3>DEBUG: Histograma deciles</h3>
+      <pre style="font-size:11px; max-height:100px; overflow:auto;">
+        {{ decileHistogramData | json }}
+      </pre> -->
+
+      <ui-histogram-chart
+        [useCustomData]="true"
+        [customData]="decileHistogramData"
+        [height]="300"
+        title="Score promedio por decil"
+        xLabel="Decil"
+        yLabel="Score promedio por decil">
+      </ui-histogram-chart>
+    </section>
+
+
+      <!-- =========================
+           TABLA POR DECILES (entre mapa y histogramas)
+      ==========================-->
+      <section class="card" style="padding:16px; margin-top:16px;" *ngIf="uuidNiche as uuidDecil">
+        <h2>Tabla por deciles (epsilon / score)</h2>
+
+        <div class="histogram-controls" style="margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <label for="decilSelect">Decil:</label>
+          <select
+            id="decilSelect"
+            [(ngModel)]="selectedDecile">
+            <!-- De 10 a 1 como pediste -->
+            <option *ngFor="let d of [10,9,8,7,6,5,4,3,2,1]" [value]="d">
+              {{ d }}
+            </option>
+          </select>
+
+          <span style="font-size:0.85rem; opacity:0.8;">
+            Mostrando pares (target/covar) en el rango del decil seleccionado.
+          </span>
+        </div>
+
+        <tabla-species
+          [decileMode]="true"
+          [uuid]="uuidDecil"
+          [decile]="selectedDecile"
+          [metric]="'epsilon'"
+          [loading]="isAnalyzingNiche">
+        </tabla-species>
+      </section>
+
+
+
+      <!-- =========================
+           HISTOGRAMAS (entre mapa de nicho y tabla)
+      ==========================-->
+      <section class="card" style="padding:16px; margin-top:16px;" *ngIf="uuidNiche as id">
+        <h2>Distribuciones (Histograma)</h2>
+
+        <!-- Controles: van en su propia fila -->
+        <div class="histogram-controls">
+          <label for="buckets">Rangos:</label>
+          <input id="buckets" type="number" min="5" max="60" step="1" [(ngModel)]="histogramBuckets" />
+          <small>(default 10)</small>
+        </div>
+
+        <!-- Grid solo para los charts -->
+        <div class="histograms-grid" style="height: 400px;">
+          <!-- Epsilon (getFrequencyByRange) -->
+          <ui-histogram-chart
+            endpoint="frequency"
+            metric="epsilon"
+            [uuid]="id"
+            [numBuckets]="histogramBuckets"
+            [height]="400"
+            title="Epsilon (frecuencia)"
+            xLabel="Rangos"
+            yLabel="Frecuencia">
+          </ui-histogram-chart>
+
+          <!-- Score (getFrequencyByRange) -->
+          <ui-histogram-chart
+            endpoint="frequency"
+            metric="score"
+            [uuid]="id"
+            [numBuckets]="histogramBuckets"
+            [height]="400"
+            title="Score (frecuencia)"
+            xLabel="Rangos"
+            yLabel="Frecuencia">
+          </ui-histogram-chart>
+
+          <!-- (cuando actives el tercero, se irá a la 2a fila automáticamente) -->
+          
+          <ui-histogram-chart
+            endpoint="bycell"
+            metric="score"
+            [uuid]="id"
+            [numBuckets]="histogramBuckets"
+            [height]="400"
+            title="Score (celdas seleccionadas)"
+            xLabel="Rangos"
+            yLabel="Frecuencia">
+          </ui-histogram-chart>
+          
+        </div>
+      </section>
+
+      <!-- =========================
+           TABLA
+      ==========================-->
+      <section class="card table-row" style="margin-top:16px;">
+        <h2>Tabla Relaciones</h2>
+        <tabla-species
+          [grid_id]="1"
+          [min_occ]="5"
+          [target]="[{ id_source: 1, q: 'especie = Lynx rufus', offset: 0, limit: 100000 }]"
+          [covars]="[{ id_source: 1, q: 'familia = Canidae', offset: 0, limit: 100000 }]"
+          [autoFetch]="false"
+          [rowsFromMap]="tableRows"
+          [loading]="isAnalyzingNiche">
+        </tabla-species>
+      </section>
+
+    </div>
+  </div>
+</div>
