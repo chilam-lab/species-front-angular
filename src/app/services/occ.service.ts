@@ -2,6 +2,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
+
 
 export interface SplistItem {
   nivel: string;
@@ -23,10 +25,14 @@ type OccRowRaw = {
   occ?: number | string;
 };
 
+console.log('occ ENV production:', environment.production);
+console.log('occ API base:', environment.apiBaseUrl);
+
+
 @Injectable({ providedIn: 'root' })
 export class OccService {
   /** Cambia esto por tu environment si lo prefieres */
-  private readonly baseUrl = 'http://localhost:8087';
+  private readonly baseUrl = environment.apiBaseUrl;
 
   constructor(private http: HttpClient) {}
 

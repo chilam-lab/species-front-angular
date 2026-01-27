@@ -13,17 +13,7 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve",
-    "paths": {
-      "tabla-species": ["../ui-species-workspace/dist/tabla-species"],
-      "mapa-maplibre": ["../ui-species-workspace/dist/mapa-maplibre"],
-      "region-selector": ["../ui-species-workspace/dist/region-selector"],
-      "taxon-selector": ["../ui-species-workspace/dist/taxon-selector"],
-      "taxon-navigator": ["../ui-species-workspace/dist/taxon-navigator"],
-      "taxon-shared": ["../ui-species-workspace/dist/taxon-shared"],
-      "taxon-scope": ["../ui-species-workspace/dist/taxon-scope"],
-      "histogram-chart": ["../ui-species-workspace/dist/histogram-chart"]
-    }
+    "module": "preserve"
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

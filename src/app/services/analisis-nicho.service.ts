@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, forkJoin, of } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import type { FeatureCollection } from 'geojson';
+import { environment } from '../../environments/environment';
 
 /** -----------------------------
  *  Tipos de entrada (tus originales)
@@ -55,7 +56,11 @@ interface EpsScrRelationResponse {
 /** -----------------------------
  *  Config
  *  ----------------------------- */
-const BASE_URL = 'http://localhost:8087/mdf';
+const BASE_URL = environment.apiBaseUrl + '/mdf';
+
+console.log('ana ENV production:', environment.production);
+console.log('ana API base:', environment.apiBaseUrl);
+
 
 @Injectable({ providedIn: 'root' })
 export class AnalisisNichoService {

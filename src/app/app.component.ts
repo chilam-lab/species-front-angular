@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
-import { MapaMaplibreComponent } from 'mapa-maplibre';
+import { MapaMaplibreComponent  } from 'mapa-maplibre';
 import { TablaSpeciesComponent } from 'tabla-species';
 import { RegionSelectorComponent } from 'region-selector';
 import { TaxonSelectorComponent } from 'taxon-selector';
@@ -16,6 +16,8 @@ import { SidebarComponent } from './layout/sidebar/sidebar.component';
 
 // Servicio para SECCIÓN 1 (occ)
 import { OccService } from './services/occ.service';
+
+import { environment } from '../environments/environment';
 
 /* ================= Tipos locales ================= */
 type TaxonSelectionPayload = { levels: { level: string; values: string[] }[] };
@@ -45,6 +47,10 @@ type EpsScrPayload = {
 
 type EpsScrRelationResponse = { uuid: string };
 
+console.log('app ENV production:', environment.production);
+console.log('app API base:', environment.apiBaseUrl);
+
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -62,7 +68,7 @@ export class AppComponent {
   // =======================
   // Config/Constantes
   // =======================
-  private readonly BASE_URL = 'http://localhost:8087/mdf';
+  private readonly BASE_URL = environment.apiBaseUrl + '/mdf';
 
   // sidebar colapsado por defecto
   sidebarCollapsed = true;
