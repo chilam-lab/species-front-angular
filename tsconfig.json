@@ -1,7 +1,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": ".",                         // <- FALTA
+    "baseUrl": ".",
     "moduleResolution": "bundler",          // <- recomendado con Angular 17+
     "strict": true,
     "noImplicitOverride": true,
