@@ -27,7 +27,7 @@
             <taxon-scope>
               <section class="card" style="margin:0 0 12px 0;">
                 <h3>Selector Taxonómico (Target)</h3>
-                <taxon-selector (speciesSelected)="onSpeciesSelected($event)"></taxon-selector>
+                <taxon-selector [enabledSourceIds]="[1]" (speciesSelected)="onSpeciesSelected($event)"></taxon-selector>
               </section>
 
               <section class="card" style="margin:0;">
@@ -85,7 +85,7 @@
             <taxon-scope>
               <section class="card" style="margin:0;">
                 <h3>Selector Taxonómico</h3>
-                <taxon-selector (speciesSelected)="onSpeciesSelected2($event)"></taxon-selector>
+                <taxon-selector [enabledSourceIds]="[1,2]" (speciesSelected)="onSpeciesSelected2($event)"></taxon-selector>
               </section>
               <section class="card" style="margin:0;">
                 <h3>Navegador Taxonómico</h3>

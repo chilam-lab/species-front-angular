@@ -20,7 +20,20 @@ import { OccService } from './services/occ.service';
 import { environment } from '../environments/environment';
 
 /* ================= Tipos locales ================= */
-type TaxonSelectionPayload = { levels: { level: string; values: string[] }[] };
+// type TaxonSelectionPayload = { levels: { level: string; values: string[] }[] };
+type TaxonSelectionPayload = {
+  levels: { level: string; values: string[] }[];
+  source_id?: number;
+  sources?: {
+    source_id: number;
+    source_name: string;
+    levels: { level: string; values: string[] }[];
+    context?: { idfuente?: number; layer?: string };
+  }[];
+};
+
+
+
 type SplistItem = { nivel: string; valor: string };
 type OccRow = { cell_id: number; occ: number };
 
@@ -108,6 +121,14 @@ export class AppComponent {
   resolution2: string | null = null;
   gridId2: number | null = null;   // no se usa; se toma gridId (Target)
   taxonSel2: TaxonSelectionPayload = { levels: [] };
+  // taxonSel2BySource: Record<number, TaxonSelectionPayload> = {};
+  taxonSel2Sources: { 
+    source_id: number; 
+    levels: { level: string; values: string[] }[];
+    context?: { idfuente?: number; layer?: string };
+  }[] = [];
+
+
 
   // ==== HISTOGRAMAS ====
   /** uuid resultante de getEpsScrRelation; cuando existe, se pintan los histogramas */
@@ -282,20 +303,33 @@ export class AppComponent {
   }
 
   onNavigatorSelectionChange(sel: TaxonSelectionPayload | Event) {
-    let normalized: TaxonSelectionPayload | null = null;
-    if (this.isTaxonSelectionPayload(sel)) {
-      normalized = sel;
-    } else if (sel && typeof sel === 'object' && 'levels' in (sel as any)) {
-      normalized = (sel as any) as TaxonSelectionPayload;
-    }
-    if (!normalized) return;
+  const payload = sel as TaxonSelectionPayload;
 
-    const cloned = JSON.parse(JSON.stringify(normalized)) as TaxonSelectionPayload;
-    cloned.levels = Array.isArray(cloned.levels) ? cloned.levels : [];
-    this.taxonSel = cloned;
-
+  if (Array.isArray(payload?.sources) && payload.sources.length > 0) {
+    const first = payload.sources[0];
+    this.taxonSel = {
+      levels: Array.isArray(first?.levels) ? first.levels : [],
+      source_id: Number(first?.source_id ?? 1)
+    };
     this.clearValidation();
+    return;
   }
+
+  let normalized: TaxonSelectionPayload | null = null;
+  if (this.isTaxonSelectionPayload(sel)) {
+    normalized = sel;
+  } else if (sel && typeof sel === 'object' && 'levels' in (sel as any)) {
+    normalized = (sel as any) as TaxonSelectionPayload;
+  }
+  if (!normalized) return;
+
+  const cloned = JSON.parse(JSON.stringify(normalized)) as TaxonSelectionPayload;
+  cloned.levels = Array.isArray(cloned.levels) ? cloned.levels : [];
+  this.taxonSel = cloned;
+
+  this.clearValidation();
+}
+
 
   onVisualize() {
     const array_splist = this.buildSplistFrom(this.taxonSel);
@@ -313,7 +347,7 @@ export class AppComponent {
     this.mapQuery = {
       regionId: this.regionId ?? -1,
       resolution: this.resolution ?? '',
-      taxonomy: this.taxonSel.levels
+      taxonomy: this.taxonSel.levels ?? []
     };
 
     const payload = { grid_id: this.gridId, array_splist };
@@ -351,20 +385,22 @@ export class AppComponent {
   }
 
   onNavigatorSelectionChange2(sel: TaxonSelectionPayload | Event) {
-    let normalized: TaxonSelectionPayload | null = null;
-    if (this.isTaxonSelectionPayload(sel)) {
-      normalized = sel;
-    } else if (sel && typeof sel === 'object' && 'levels' in (sel as any)) {
-      normalized = (sel as any) as TaxonSelectionPayload;
-    }
-    if (!normalized) return;
+  const payload = sel as TaxonSelectionPayload;
 
-    const cloned = JSON.parse(JSON.stringify(normalized)) as TaxonSelectionPayload;
-    cloned.levels = Array.isArray(cloned.levels) ? cloned.levels : [];
-    this.taxonSel2 = cloned;
+  const sources = Array.isArray(payload?.sources) ? payload.sources : [];
 
-    this.clearValidation();
-  }
+  this.taxonSel2Sources = sources
+    .map(src => ({
+      source_id: Number(src?.source_id ?? 1),
+      levels: Array.isArray(src?.levels) ? src.levels : [],
+      context: src?.context
+    }))
+    .filter(src => src.levels.length > 0);
+
+  this.clearValidation();
+}
+
+
 
   /** Botón: arma el payload para getEpsScrRelation, obtiene el uuid y llama al mapa 2 */
   onVisualizeNicho() {
@@ -375,28 +411,89 @@ export class AppComponent {
 
     // Target (S1)
     const splistTarget = this.buildSplistFrom(this.taxonSel);
-    // Covars (S2)
-    const splistCovars = this.buildSplistFrom(this.taxonSel2);
+    
+    // // Covars (S2)
+    // const splistCovars = this.buildSplistFrom(this.taxonSel2);
+    // const errs: string[] = [];
+    // if (splistTarget.length === 0) errs.push('Selecciona al menos un taxón en Target.');
+    // if (splistCovars.length === 0) errs.push('Selecciona al menos un taxón en Covariables.');
+    // if (errs.length) {
+    //   this.showValidationMessages(errs);
+    //   return;
+    // }
+    // const qTarget = this.buildQFromSplist(splistTarget);
+    // const qCovars = this.buildQFromSplist(splistCovars);
+    
+    // const payload: EpsScrPayload = {
+    //   grid_id: this.gridId!,
+    //   min_occ: 5,
+    //   target: [rq(qTarget)],
+    //   covars: [rq(qCovars)]
+    // };
+
+    const qTarget = this.buildQFromSplist(splistTarget);
+
+    const rq = (q: string, id_source: number): RelationQuery => ({
+      id_source,
+      q,
+      offset: 0,
+      limit: 100000
+    });
+
+    // const covarsQueries: RelationQuery[] = this.taxonSel2Sources
+    //   .map(src => {
+    //     const splist = this.buildSplistFrom({ levels: src.levels });
+    //     if (splist.length === 0) return null;
+
+    //     const q = this.buildQFromSplist(splist);
+    //     if (!q) return null;
+
+    //     return rq(q, src.source_id);
+    //   })
+    //   .filter((item): item is RelationQuery => item !== null);
+    
+
+      const covarsQueries: RelationQuery[] = this.taxonSel2Sources
+        .map(src => {
+          const splist = this.buildSplistFrom({ levels: src.levels });
+          if (splist.length === 0) return null;
+
+          const qBase = this.buildQFromSplist(splist);
+          if (!qBase) return null;
+
+          const parts: string[] = [];
+
+          if (src.source_id === 2) {
+            if (src.context?.idfuente != null) parts.push(`idfuente = ${src.context.idfuente}`);
+            if (src.context?.layer) parts.push(`layer = ${src.context.layer}`);
+          }
+
+          parts.push(qBase);
+
+          return rq(parts.join('; '), src.source_id);
+        })
+        .filter((item): item is RelationQuery => item !== null);
+
 
     const errs: string[] = [];
     if (splistTarget.length === 0) errs.push('Selecciona al menos un taxón en Target.');
-    if (splistCovars.length === 0) errs.push('Selecciona al menos un taxón en Covariables.');
+    if (covarsQueries.length === 0) errs.push('Selecciona al menos un taxón en Covariables.');
     if (errs.length) {
       this.showValidationMessages(errs);
       return;
     }
 
-    const qTarget = this.buildQFromSplist(splistTarget);
-    const qCovars = this.buildQFromSplist(splistCovars);
-
-    const rq = (q: string): RelationQuery => ({ id_source: 1, q, offset: 0, limit: 100000 });
-
     const payload: EpsScrPayload = {
       grid_id: this.gridId!,
       min_occ: 5,
-      target: [rq(qTarget)],
-      covars: [rq(qCovars)]
+      target: [rq(qTarget, this.taxonSel.source_id ?? 1)],
+      covars: covarsQueries
     };
+
+
+   
+    
+
 
     console.log('[App] EpsScr payload ->', payload);
 
