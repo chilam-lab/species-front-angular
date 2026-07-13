@@ -1,5 +1,5 @@
 # Angular specific
-/dist/
+# /dist/ — se versiona para despliegue en servidor (git pull en producción)
 /out-tsc/
 /tmp/
 /coverage/
