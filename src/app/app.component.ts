@@ -455,20 +455,20 @@ export class AppComponent {
 
       const covarsQueries: RelationQuery[] = this.taxonSel2Sources
         .map(src => {
-          const splist = this.buildSplistFrom({ levels: src.levels });
-          if (splist.length === 0) return null;
-
-          const qBase = this.buildQFromSplist(splist);
-          if (!qBase) return null;
-
           const parts: string[] = [];
 
-          if (src.source_id === 2) {
-            if (src.context?.idfuente != null) parts.push(`idfuente = ${src.context.idfuente}`);
-            if (src.context?.layer) parts.push(`layer = ${src.context.layer}`);
-          }
+          if (src.context?.idfuente != null) parts.push(`idfuente = ${src.context.idfuente}`);
+          if (src.context?.layer) parts.push(`layer = ${src.context.layer}`);
 
-          parts.push(qBase);
+          // For layer sources (WorldClim/DEM), context already has the correct filters.
+          // For taxonomy sources (SNIB/GBIF), context is empty → fall back to label-based query.
+          if (parts.length === 0) {
+            const splist = this.buildSplistFrom({ levels: src.levels });
+            if (splist.length === 0) return null;
+            const qBase = this.buildQFromSplist(splist);
+            if (!qBase) return null;
+            parts.push(qBase);
+          }
 
           return rq(parts.join('; '), src.source_id);
         })
