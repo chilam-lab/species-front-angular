@@ -55,7 +55,8 @@
                 }
               ],
               "optimization": true,
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "baseHref": "/beta-species/"
             },
             "development": {
               "optimization": false,
