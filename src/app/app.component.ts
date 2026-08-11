@@ -105,6 +105,14 @@ export class AppComponent {
   // =======================
   // SECCIÓN 1 (TARGET)
   // =======================
+  targetSourceId: number | null = null; // fuente elegida en Selector de Área (Target)
+  // Covariables debe mostrar SIEMPRE la misma fuente SNIB/GBIF que el Target (primera en
+  // la lista), más WorldClim y DEM; la fuente SNIB/GBIF que NO coincide con el Target no
+  // debe aparecer. Se recalcula solo cuando cambia targetSourceId, nunca en cada change
+  // detection, para que taxon-selector no reciba una referencia de array nueva en cada ciclo.
+  private static readonly WORLDCLIM_SOURCE_ID = 2;
+  private static readonly DEM_SOURCE_ID = 4;
+  covarsEnabledSourceIds: number[] | null = [1, 2, 4]; // default: SNIB primero, hasta conocer el target real
   regionId: number | null = null;
   resolution: string | null = null;
   gridId: number | null = null;      // malla base
@@ -283,6 +291,12 @@ export class AppComponent {
   }
 
   // ---------- handlers SECCIÓN 1 (Target) ----------
+  onTargetSourceSelected(sourceId: number) {
+    this.targetSourceId = Number(sourceId);
+    this.covarsEnabledSourceIds = [this.targetSourceId, AppComponent.WORLDCLIM_SOURCE_ID, AppComponent.DEM_SOURCE_ID];
+    this.clearValidation();
+  }
+
   onRegionSelected(regionId: number) {
     this.regionId = regionId;
     this.clearValidation();
@@ -350,7 +364,7 @@ export class AppComponent {
       taxonomy: this.taxonSel.levels ?? []
     };
 
-    const payload = { grid_id: this.gridId, array_splist };
+    const payload = { grid_id: this.gridId, array_splist, source_id: this.taxonSel.source_id ?? 1 };
     this.occService.getOccOnMap(payload).subscribe({
       next: ({ data }) => {
         this.occValues = data ?? [];

@@ -40,7 +40,7 @@ export class OccService {
    * Obtiene ocurrencias agregadas para el mapa.
    * SIEMPRE normaliza a { cell_id: number, occ: number } para evitar problemas de tipado/ids.
    */
-  getOccOnMap(payload: { grid_id: number; array_splist: SplistItem[] }): Observable<{ data: OccRow[] }> {
+  getOccOnMap(payload: { grid_id: number; array_splist: SplistItem[]; source_id?: number }): Observable<{ data: OccRow[] }> {
     const url = `${this.baseUrl}/mdf/getOccOnMap`;
 
     return this.http.post<{ data?: OccRowRaw[] } | any>(url, payload, {

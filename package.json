@@ -28,10 +28,10 @@
     "histogram-chart": "file:local-packages/histogram-chart-0.0.1.tgz",
     "mapa-maplibre": "file:local-packages/mapa-maplibre-0.0.1.tgz",
     "taxon-scope": "file:local-packages/taxon-scope-0.0.1.tgz",
-    "region-selector": "file:local-packages/region-selector-0.0.1.tgz",
+    "region-selector": "file:local-packages/region-selector-0.0.3.tgz",
     "tabla-species": "file:local-packages/tabla-species-0.0.1.tgz",
     "taxon-navigator": "file:local-packages/taxon-navigator-0.0.1.tgz",
-    "taxon-selector": "file:local-packages/taxon-selector-0.0.1.tgz",
+    "taxon-selector": "file:local-packages/taxon-selector-0.0.6.tgz",
     "taxon-shared": "file:local-packages/taxon-shared-0.0.1.tgz",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
