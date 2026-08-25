@@ -513,7 +513,10 @@ export class AppComponent {
 
     this.isAnalyzingNiche = true;
 
-    // 1) Disparo el mapa 2 (tu flujo ya existente)
+    // Disparo el mapa: es la ÚNICA llamada a getEpsScrRelation por análisis.
+    // Antes se pedía el mismo análisis dos veces (aquí y otra vez solo por el uuid/
+    // scoreDeciles de los histogramas) — el mapa ahora emite también esos datos
+    // (epsScrExtrasReady, ver onEpsScrExtrasReady) tomados de su propia respuesta.
     if (this.mapNiche?.getEpsScrRelation) {
       if ((this.mapNiche as any).setLoading) {
         (this.mapNiche as any).setLoading(true);
@@ -525,36 +528,6 @@ export class AppComponent {
       this.isAnalyzingNiche = false;
       return;
     }
-
-    // 2) Obtengo el uuid para los histogramas
-    this.http.post<EpsScrRelationResponse & { scoreDeciles: any[] }>(`${this.BASE_URL}/getEpsScrRelation`,
-      payload
-    ).subscribe({
-      next: (res) => {
-        this.uuidNiche = res?.uuid ?? null;
-        this.selectedDecile = 10;
-
-        // Guardar deciles del backend
-        this.scoreDeciles = Array.isArray((res as any).scoreDeciles) ? (res as any).scoreDeciles : [];
-
-        // Transformar para el histograma (10 → 1)
-        this.decileHistogramData = this.scoreDeciles
-          .slice()
-          .sort((a, b) => b.decil - a.decil)
-          .map(d => ({
-            label: d.decil.toString(),
-            value: +d.avg_score_cell.toFixed(2)
-          }));
-        
-        console.log('decileHistogramData:', this.decileHistogramData);
-        
-      },
-      error: (err) => {
-        console.error('getEpsScrRelation (uuid) error:', err);
-        this.uuidNiche = null; // si falla, escondemos los histogramas
-      }
-    });
-
   }
 
   /** Callback que tu mapa 2 debe emitir cuando termina el análisis */
@@ -568,6 +541,25 @@ export class AppComponent {
       (this.mapNiche as any).setLoading(false);
     }
     this.isAnalyzingNiche = false;
+  }
+
+  /** uuid + scoreDeciles de la misma respuesta que ya recibió el mapa (evita un segundo POST) */
+  onEpsScrExtrasReady(extras: { uuid: string | null; scoreDeciles: any[] }) {
+    this.uuidNiche = extras?.uuid ?? null;
+    this.selectedDecile = 10;
+
+    this.scoreDeciles = Array.isArray(extras?.scoreDeciles) ? extras.scoreDeciles : [];
+
+    // Transformar para el histograma (10 → 1)
+    this.decileHistogramData = this.scoreDeciles
+      .slice()
+      .sort((a, b) => b.decil - a.decil)
+      .map(d => ({
+        label: d.decil.toString(),
+        value: +d.avg_score_cell.toFixed(2)
+      }));
+
+    console.log('decileHistogramData:', this.decileHistogramData);
   }
 
 }

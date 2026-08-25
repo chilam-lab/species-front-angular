@@ -118,7 +118,8 @@
               [controlBaseLayer]="false"
               [controlScoreLayer]="true"
               [loading]="isAnalyzingNiche"
-              (epsScrRelReady)="onEpsScrRelReady($event)">
+              (epsScrRelReady)="onEpsScrRelReady($event)"
+              (epsScrExtrasReady)="onEpsScrExtrasReady($event)">
             </app-mapa-maplibre>
           </div>
         </div>

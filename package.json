@@ -26,7 +26,7 @@
     "maplibre-gl": "^5.6.1",
     "rxjs": "~7.8.0",
     "histogram-chart": "file:local-packages/histogram-chart-0.0.1.tgz",
-    "mapa-maplibre": "file:local-packages/mapa-maplibre-0.0.1.tgz",
+    "mapa-maplibre": "file:local-packages/mapa-maplibre-0.0.2.tgz",
     "taxon-scope": "file:local-packages/taxon-scope-0.0.1.tgz",
     "region-selector": "file:local-packages/region-selector-0.0.3.tgz",
     "tabla-species": "file:local-packages/tabla-species-0.0.1.tgz",
