@@ -27,13 +27,175 @@ html {
   background-color: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
-}@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
-
-body {
-  margin: 0;
-  font-family: 'Montserrat', sans-serif;
-  background-color: #f2f2f2;
 }
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body {
+  margin: 0;
+  /* Tipografía del design system (DESIGN.md): Inter en toda la UI. El
+     header/sidebar (fuera de alcance de este ajuste) declaran su propio
+     Montserrat explícito, así que no se ven afectados por este cambio. */
+  font-family: 'Inter', Roboto, "Helvetica Neue", sans-serif;
+  background-color: #f2f2f2;
+}
+
+/* ===================================================================
+   Clases compartidas por los pasos del asistente de Nicho Ecológico
+   (Target / Covariables / Resultados) — antes vivían en
+   app.component.scss cuando todo era un solo componente; se vuelven
+   globales porque ahora cada paso es su propio componente ruteado y
+   el encapsulamiento de estilos de Angular no cruza <router-outlet>.
+   =================================================================== */
+
+.card, .map-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 10px;
+  padding: 12px;
+}
+.card h2, .map-card h2 { margin: 0 0 8px 0; font-size: 18px; }
+.card h3, .map-card h3 { margin: 0 0 8px 0; font-size: 16px; font-weight: 600; }
+.card, .map-card { min-width: 0; overflow: hidden; }
+
+.target-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.covars-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.stack { display: flex; flex-direction: column; gap: 12px; }
+
+.map-card { display: flex; flex-direction: column; min-height: 0; }
+
+.map-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 420px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.map-wrap app-mapa-maplibre {
+  /* position:absolute + inset en vez de height:100% — un height porcentual
+     no siempre se resuelve cuando el padre (.map-wrap) obtiene su alto vía
+     min-height en vez de un height explícito (confirmado en vivo: el host
+     medía 0px de alto pese a que .map-wrap sí tenía 307px reales). */
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+
+.actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.btn-primary {
+  appearance: none;
+  /* DESIGN.md: secondary (Nature Green) */
+  background: #006c49;
+  color: #fff;
+  border: none;
+  border-radius: 0.25rem;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-family: 'Inter', Roboto, sans-serif;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+.btn-primary:hover:not(:disabled) { background: #00512f; }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+.alert-warning {
+  background:#fff8e1; border:1px solid #ffe082;
+  padding:8px 12px; border-radius:6px; color:#8d6e63;
+}
+
+.table-row {}
+
+.histogram-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.histograms-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+.histograms-grid > * { min-width: 0; overflow: hidden; }
+
+.flex-row > * { min-width: 0; }
+
+@media (max-width: 1200px) {
+  .target-grid, .covars-grid { grid-template-columns: 1fr; }
+  .map-wrap { min-height: 50vh; }
+  .histograms-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .map-wrap { min-height: 45vh; }
+}
+
+/* ===== Tablas (resumen de Resultados, etc.) — spec de tablas en DESIGN.md:
+   header gris claro en mayúsculas, filas con zebra striping sutil. ===== */
+.table-wrap { overflow-x: auto; }
+
+.summary-table, .summary-subtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Inter', Roboto, sans-serif;
+  font-size: 14px;
+}
+
+.summary-table th {
+  text-align: left;
+  vertical-align: top;
+  width: 200px;
+  padding: 10px 12px;
+  background: #eff4ff;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: #45464d;
+  border-bottom: 1px solid #e2e8f0;
+}
+.summary-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #0b1c30;
+}
+.summary-table tr:nth-child(even) td,
+.summary-table tr:nth-child(even) th { background: #f8f9ff; }
+
+.summary-subtable {
+  margin-top: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+.summary-subtable th {
+  padding: 6px 10px;
+  background: #eff4ff;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: #45464d;
+  text-align: left;
+}
+.summary-subtable td {
+  padding: 6px 10px;
+  border-top: 1px solid #e2e8f0;
+  color: #0b1c30;
+}
+.summary-subtable tr:nth-child(even) td { background: #f8f9ff; }

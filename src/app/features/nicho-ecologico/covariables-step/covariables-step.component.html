@@ -1,0 +1,24 @@
+<section class="card" style="padding:16px;">
+  <h2>Covariables</h2>
+
+  <div class="covars-grid">
+    <div>
+      <taxon-scope>
+        <section class="card" style="margin:0;">
+          <h3>Selector Taxonómico</h3>
+          <taxon-selector [enabledSourceIds]="state.covarsEnabledSourceIds" (speciesSelected)="onSpeciesSelected2($event)"></taxon-selector>
+        </section>
+        <section class="card" style="margin:0;">
+          <h3>Navegador Taxonómico</h3>
+          <taxon-navigator (selectionChange)="onNavigatorSelectionChange2($event)"></taxon-navigator>
+        </section>
+      </taxon-scope>
+    </div>
+  </div>
+
+  <div class="card actions" style="margin-top:12px;">
+    <button class="btn-primary" type="button" (click)="goNext()">
+      Siguiente: Resultados →
+    </button>
+  </div>
+</section>

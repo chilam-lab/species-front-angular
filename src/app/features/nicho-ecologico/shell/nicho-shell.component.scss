@@ -1,0 +1,47 @@
+.nicho-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.nicho-shell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 4px 4px 8px;
+  flex-wrap: wrap;
+}
+
+.nicho-shell__step-meta {
+  text-align: right;
+  font-family: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.nicho-shell__step-meta h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+  color: #0b1c30;
+}
+
+.nicho-shell__step-meta p {
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #45464d;
+}
+
+@media (max-width: 760px) {
+  .nicho-shell__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .nicho-shell__step-meta {
+    text-align: left;
+  }
+}

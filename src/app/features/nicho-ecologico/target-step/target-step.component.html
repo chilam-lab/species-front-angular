@@ -1,0 +1,70 @@
+<section class="card" style="padding:16px;">
+  <h2>Target</h2>
+
+  <div class="target-grid">
+    <div class="left-pane">
+      <section class="card" style="margin:0 0 12px 0;">
+        <h3>Selector de Área (Target)</h3>
+        <app-region-selector
+          [enabledSourceIds]="[1, 3]"
+          (sourceSelected)="onTargetSourceSelected($event)"
+          (regionSelected)="onRegionSelected($event)"
+          (resolutionSelected)="onResolutionSelected($event)"
+          (gridIdSelected)="onGridIdSelected($event)">
+        </app-region-selector>
+      </section>
+
+      <taxon-scope>
+        <section class="card" style="margin:0 0 12px 0;">
+          <h3>Selector Taxonómico (Target)</h3>
+          <taxon-selector [forceSourceId]="state.targetSourceId" (speciesSelected)="onSpeciesSelected($event)"></taxon-selector>
+        </section>
+
+        <section class="card" style="margin:0;">
+          <h3>Navegador Taxonómico (Target)</h3>
+          <taxon-navigator (selectionChange)="onNavigatorSelectionChange($event)"></taxon-navigator>
+        </section>
+      </taxon-scope>
+    </div>
+
+    <div class="right-pane">
+      <section class="map-card" style="margin:0;">
+        <h3>Mapa de Presencia (Target)</h3>
+        <div class="map-wrap">
+          <app-mapa-maplibre
+            [mapId]="'map-target'"
+            [gridId]="state.gridId!"
+            [occValues]="state.occValues"
+            [run]="state.runStamp"
+            [showLayerControl]="true"
+            [controlBaseLayer]="true"
+            [controlScoreLayer]="false"
+            [loading]="state.isAnalyzingOcc">
+          </app-mapa-maplibre>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card" *ngIf="state.showValidation" style="margin-top:12px;">
+    <div class="alert-warning">
+      <ul><li *ngFor="let msg of state.validationMessages">{{ msg }}</li></ul>
+    </div>
+  </section>
+
+  <div class="card actions" style="margin-top:12px; gap: 12px;">
+    <button class="btn-primary" type="button"
+            (click)="onVisualize()"
+            [disabled]="state.isAnalyzingOcc"
+            [attr.aria-busy]="state.isAnalyzingOcc ? 'true' : 'false'">
+      {{ state.isAnalyzingOcc ? 'Procesando…' : 'Generar mapa (Target)' }}
+    </button>
+
+    <button class="btn-primary" type="button"
+            (click)="goNext()"
+            [disabled]="!canAdvance"
+            [title]="!state.targetMapGenerated ? 'Genera el mapa para continuar' : ''">
+      Siguiente: Covariables →
+    </button>
+  </div>
+</section>

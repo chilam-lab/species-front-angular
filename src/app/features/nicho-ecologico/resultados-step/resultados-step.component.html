@@ -1,0 +1,139 @@
+<section class="card" style="padding:16px;">
+  <h2>Resultados</h2>
+
+  <section class="card" style="margin:0 0 12px 0;">
+    <h3>Resumen</h3>
+    <div class="table-wrap">
+      <table class="summary-table">
+        <tbody>
+          <tr>
+            <th>Fuente</th>
+            <td>{{ targetSourceLabel }}</td>
+          </tr>
+          <tr>
+            <th>Región</th>
+            <td>{{ regionDisplay }}</td>
+          </tr>
+          <tr>
+            <th>Resolución</th>
+            <td>{{ state.resolution ?? '—' }}</td>
+          </tr>
+          <tr>
+            <th>Grupo objetivo</th>
+            <td>{{ targetTaxonSummary }}</td>
+          </tr>
+          <tr>
+            <th>Grupo de covariables</th>
+            <td>
+              <span *ngIf="covariablesSummary.length === 0">Sin selección</span>
+              <table *ngIf="covariablesSummary.length > 0" class="summary-subtable">
+                <thead>
+                  <tr><th>Fuente de datos</th><th>Valores seleccionados</th></tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let c of covariablesSummary">
+                    <td>{{ c.source }}</td>
+                    <td>{{ c.values }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" *ngIf="state.showValidation" style="margin:0 0 12px 0;">
+    <div class="alert-warning">
+      <ul><li *ngFor="let msg of state.validationMessages">{{ msg }}</li></ul>
+    </div>
+  </section>
+
+  <div class="card actions" style="margin-bottom:12px;">
+    <button class="btn-primary" type="button"
+            (click)="ejecutarAnalisis()"
+            [disabled]="!canRunAnalysis || state.isAnalyzingNiche"
+            [attr.aria-busy]="state.isAnalyzingNiche ? 'true' : 'false'"
+            [title]="!canRunAnalysis ? 'Completa Target y Covariables para poder ejecutar el análisis' : ''">
+      {{ state.isAnalyzingNiche ? 'Procesando…' : 'Ejecutar Análisis' }}
+    </button>
+  </div>
+
+  <!-- Mapa de coocurrencias: siempre presente en el DOM (necesario para que el
+       @ViewChild esté listo cuando se hace clic en "Ejecutar Análisis"). -->
+  <div class="map-card" style="margin-bottom:16px;">
+    <h3>Mapa de Coocurrencias</h3>
+    <div class="map-wrap">
+      <app-mapa-maplibre
+        #mapNiche
+        [mapId]="'map-resultados'"
+        [showLayerControl]="true"
+        [controlBaseLayer]="false"
+        [controlScoreLayer]="true"
+        [loading]="state.isAnalyzingNiche"
+        (epsScrRelReady)="onEpsScrRelReady($event)"
+        (epsScrExtrasReady)="onEpsScrExtrasReady($event)">
+      </app-mapa-maplibre>
+    </div>
+  </div>
+
+  <section class="card" *ngIf="state.decileHistogramData?.length">
+    <ui-histogram-chart
+      [useCustomData]="true"
+      [customData]="state.decileHistogramData"
+      [height]="300"
+      title="Score promedio por decil"
+      xLabel="Decil"
+      yLabel="Score promedio por decil">
+    </ui-histogram-chart>
+  </section>
+
+  <section class="card" style="margin-top:16px;" *ngIf="state.uuidNiche as uuidDecil">
+    <h2>Tabla por deciles (epsilon / score)</h2>
+    <div class="histogram-controls">
+      <label for="decilSelect">Decil:</label>
+      <select id="decilSelect" [(ngModel)]="state.selectedDecile">
+        <option *ngFor="let d of [10,9,8,7,6,5,4,3,2,1]" [value]="d">{{ d }}</option>
+      </select>
+      <span style="font-size:0.85rem; opacity:0.8;">Mostrando pares (target/covar) en el rango del decil seleccionado.</span>
+    </div>
+    <tabla-species
+      [decileMode]="true"
+      [uuid]="uuidDecil"
+      [decile]="state.selectedDecile"
+      [metric]="'epsilon'"
+      [loading]="state.isAnalyzingNiche">
+    </tabla-species>
+  </section>
+
+  <section class="card" style="margin-top:16px;" *ngIf="state.uuidNiche as id">
+    <h2>Distribuciones (Histograma)</h2>
+    <div class="histogram-controls">
+      <label for="buckets">Rangos:</label>
+      <input id="buckets" type="number" min="5" max="60" step="1" [(ngModel)]="histogramBuckets" />
+      <small>(default 10)</small>
+    </div>
+    <div class="histograms-grid">
+      <ui-histogram-chart endpoint="frequency" metric="epsilon" [uuid]="id" [numBuckets]="histogramBuckets" [height]="400"
+        title="Epsilon (frecuencia)" xLabel="Rangos" yLabel="Frecuencia"></ui-histogram-chart>
+      <ui-histogram-chart endpoint="frequency" metric="score" [uuid]="id" [numBuckets]="histogramBuckets" [height]="400"
+        title="Score (frecuencia)" xLabel="Rangos" yLabel="Frecuencia"></ui-histogram-chart>
+      <ui-histogram-chart endpoint="bycell" metric="score" [uuid]="id" [numBuckets]="histogramBuckets" [height]="400"
+        title="Score (celdas seleccionadas)" xLabel="Rangos" yLabel="Frecuencia"></ui-histogram-chart>
+    </div>
+  </section>
+
+  <section class="card table-row" style="margin-top:16px;">
+    <h2>Tabla Relaciones</h2>
+    <tabla-species
+      [autoFetch]="false"
+      [rowsFromMap]="state.tableRows"
+      [loading]="state.isAnalyzingNiche">
+    </tabla-species>
+  </section>
+
+  <div class="card actions" style="margin-top:16px;">
+    <button class="btn-primary" type="button" (click)="goBack()">← Volver a Covariables</button>
+  </div>
+</section>
