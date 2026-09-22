@@ -1,6 +1,10 @@
 <section class="card" style="padding:16px;">
   <h2>Resultados</h2>
 
+  <section class="card alert-info" *ngIf="state.preloadedPayload" style="margin:0 0 12px 0;">
+    Configuración recuperada del historial de análisis. Da clic en "Ejecutar Análisis" para correrla de nuevo.
+  </section>
+
   <section class="card" style="margin:0 0 12px 0;">
     <h3>Resumen</h3>
     <div class="table-wrap">
@@ -16,7 +20,7 @@
           </tr>
           <tr>
             <th>Resolución</th>
-            <td>{{ state.resolution ?? '—' }}</td>
+            <td>{{ resolutionDisplay }}</td>
           </tr>
           <tr>
             <th>Grupo objetivo</th>

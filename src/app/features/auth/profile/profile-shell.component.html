@@ -1,0 +1,20 @@
+<div class="profile-shell" *ngIf="user$ | async as user">
+  <header class="profile-header">
+    <div>
+      <h1>Mi cuenta</h1>
+      <p class="subtitle">{{ user.name }} · {{ user.email }}</p>
+    </div>
+    <button type="button" class="logout" (click)="logout()">Cerrar sesión</button>
+  </header>
+
+  <nav class="tabs">
+    <a routerLink="" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Perfil</a>
+    <a routerLink="seguridad" routerLinkActive="active">Seguridad</a>
+    <a routerLink="historial" routerLinkActive="active">Historial de análisis</a>
+    <a routerLink="mis-datos" routerLinkActive="active">Mis datos</a>
+  </nav>
+
+  <div class="tab-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

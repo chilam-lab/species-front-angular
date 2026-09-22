@@ -1,0 +1,31 @@
+<div class="profile-overview" *ngIf="user$ | async as user">
+  <dl class="read-only">
+    <dt>Correo</dt>
+    <dd>{{ user.email }}</dd>
+
+    <dt *ngIf="user.fecha_registro">Miembro desde</dt>
+    <dd *ngIf="user.fecha_registro">{{ user.fecha_registro | date:'longDate' }}</dd>
+  </dl>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Nombre
+      <input type="text" formControlName="name" autocomplete="name" />
+    </label>
+    <div class="field-error" *ngIf="form.controls['name'].touched && form.controls['name'].invalid">
+      El nombre es obligatorio.
+    </div>
+
+    <label>
+      Procedencia
+      <input type="text" formControlName="procedencia" />
+    </label>
+
+    <div class="field-success" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <button type="submit" [disabled]="submitting">
+      {{ submitting ? 'Guardando…' : 'Guardar cambios' }}
+    </button>
+  </form>
+</div>

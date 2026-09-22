@@ -5,5 +5,9 @@ export const routes: Routes = [
   {
     path: 'nicho-ecologico',
     loadChildren: () => import('./features/nicho-ecologico/nicho-ecologico.routes').then(m => m.nichoEcologicoRoutes)
+  },
+  {
+    path: '',
+    loadChildren: () => import('./features/auth/auth.routes').then(m => m.authRoutes)
   }
 ];

@@ -1,0 +1,125 @@
+.mis-datos {
+  font-family: 'Montserrat', sans-serif;
+
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .collections-title {
+    margin-top: 2rem;
+  }
+
+  .hint {
+    margin: 0 0 1rem;
+    font-size: 0.8rem;
+    color: #777;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+
+    th, td {
+      text-align: left;
+      padding: 0.5rem 0.4rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      color: #777;
+      font-weight: 600;
+      font-size: 0.78rem;
+    }
+  }
+
+  .spec tbody tr:nth-child(even) {
+    background: #fafafa;
+  }
+
+  .upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    max-width: 460px;
+    margin-bottom: 1rem;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.9rem;
+      color: #333;
+      margin-top: 0.75rem;
+
+      input[type='text'] {
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      max-width: fit-content;
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+
+      &:hover:not(:disabled) {
+        background-color: #555;
+      }
+    }
+  }
+
+  .validation-errors {
+    background: #fdecea;
+    border: 1px solid #f5c6c3;
+    border-radius: 4px;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    color: #a93226;
+    margin-top: 0.75rem;
+
+    ul {
+      margin: 0.25rem 0 0;
+      padding-left: 1.2rem;
+    }
+  }
+
+  .field-error {
+    color: #c0392b;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+  }
+
+  .field-success {
+    color: #2e7d32;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+  }
+
+  .danger {
+    padding: 0.35rem 0.7rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background-color: #c0392b;
+    color: #fff;
+  }
+}

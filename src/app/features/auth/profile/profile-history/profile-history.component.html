@@ -1,0 +1,38 @@
+<div class="profile-history">
+  <h2>Historial de análisis</h2>
+  <p class="hint">
+    Se guarda la configuración de cada análisis que corres (no el resultado, que expira a los 15 minutos).
+    "Re-ejecutar" te manda a Resultados con la configuración ya cargada, solo falta dar clic en "Ejecutar Análisis".
+  </p>
+
+  <div *ngIf="loading">Cargando…</div>
+  <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="table-scroll" *ngIf="!loading && rows.length > 0">
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Fuente · Región · Resolución</th>
+        <th>Target</th>
+        <th>Covariables</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of rows">
+        <td>{{ row.fecha_creacion | date:'short' }}</td>
+        <td>{{ contextSummary(row) }}</td>
+        <td>{{ targetSummary(row) }}</td>
+        <td>{{ covarsSummary(row) }}</td>
+        <td class="actions">
+          <button type="button" (click)="rerun(row)">Re-ejecutar</button>
+          <button type="button" class="danger" (click)="remove(row)">Eliminar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p *ngIf="!loading && rows.length === 0">Todavía no has corrido ningún análisis con tu sesión iniciada.</p>
+</div>

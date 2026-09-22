@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
   CovariableSource,
+  EpsScrPayload,
   MapQuery,
   OccRow,
   RelationQuery,
@@ -45,6 +46,16 @@ export class NicheAnalysisStateService {
   /** Se pone en true cuando onVisualize() (Target) termina con éxito.
    *  Gatilla el guard de avance a Covariables/Resultados. */
   targetMapGenerated = false;
+
+  /** Cuando viene de "Re-ejecutar" en el Historial de análisis (Mi cuenta):
+   *  el payload exacto ya armado, sin pasar por Target/Covariables. Si está
+   *  presente, buildEpsScrPayload() lo regresa tal cual en vez de reconstruirlo
+   *  desde taxonSel/taxonSel2Sources (que quedan vacíos en este flujo). */
+  preloadedPayload: EpsScrPayload | null = null;
+
+  /** Info legible (fuente/región/resolución) que acompaña a preloadedPayload,
+   *  para que el resumen de Resultados no quede vacío en un re-ejecutar. */
+  preloadedMeta: { targetSourceLabel?: string; region?: string; resolution?: string } | null = null;
 
   // ===== Covariables =====
   taxonSel2Sources: CovariableSource[] = [];
@@ -151,6 +162,11 @@ export class NicheAnalysisStateService {
   /** Arma target+covars a partir del estado actual, igual que hacía onVisualizeNicho().
    *  Devuelve null y deja validationMessages listos si falta algo. */
   buildEpsScrPayload(): { grid_id: number; min_occ: number; target: RelationQuery[]; covars: RelationQuery[] } | null {
+    if (this.preloadedPayload) {
+      this.clearValidation();
+      return this.preloadedPayload;
+    }
+
     if (!this.gridId) {
       this.showValidationMessages(['Selecciona región y resolución en Target.']);
       return null;
@@ -197,6 +213,7 @@ export class NicheAnalysisStateService {
   /** true si target+covariables ya tienen lo mínimo para poder ejecutar el análisis
    *  (usado por Resultados para habilitar/deshabilitar el botón sin mutar validationMessages). */
   canRunAnalysis(): boolean {
+    if (this.preloadedPayload) return true;
     if (!this.gridId) return false;
     const splistTarget = this.buildSplistFrom(this.taxonSel);
     if (splistTarget.length === 0) return false;

@@ -1,0 +1,81 @@
+<div class="mis-datos">
+  <h2>Cargar nueva colección de datos</h2>
+  <p class="hint">
+    El archivo debe estar en formato CSV, XLS o XLSX. La primera fila debe traer los encabezados.
+    Las columnas deben contener el nombre y tipo de dato descritos a continuación:
+  </p>
+
+  <table class="spec">
+    <thead>
+      <tr>
+        <th>Nombre columna</th>
+        <th>Tipo dato</th>
+        <th>Comentario</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let col of templateColumns">
+        <td>{{ col.name }}</td>
+        <td>{{ col.tipo }}</td>
+        <td>{{ col.comentario }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="upload-form">
+    <label>
+      Nombre de la colección
+      <input type="text" [(ngModel)]="nombreColeccion" name="nombreColeccion" />
+    </label>
+
+    <label>
+      Archivo (.csv, .xls, .xlsx)
+      <input type="file" accept=".csv,.xls,.xlsx" (change)="onFileSelected($event)" />
+    </label>
+
+    <p *ngIf="fileName">Archivo seleccionado: {{ fileName }} ({{ parsedRows.length }} filas)</p>
+
+    <div class="validation-errors" *ngIf="validationErrors.length > 0">
+      <p>Corrige los siguientes errores antes de cargar:</p>
+      <ul>
+        <li *ngFor="let err of validationErrors">{{ err }}</li>
+      </ul>
+    </div>
+
+    <div class="field-success" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <button type="button" [disabled]="!canSubmit || submitting" (click)="submit()">
+      {{ submitting ? 'Cargando…' : 'Cargar colección' }}
+    </button>
+  </div>
+
+  <h2 class="collections-title">Mis colecciones cargadas</h2>
+
+  <div *ngIf="loadingList">Cargando…</div>
+
+  <table *ngIf="!loadingList && collections.length > 0">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Fecha de carga</th>
+        <th>Fecha de expiración</th>
+        <th>Estatus</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let col of collections">
+        <td>{{ col.nombre_datos }}</td>
+        <td>{{ col.fecha_carga | date:'short' }}</td>
+        <td>{{ col.fecha_expiracion | date:'short' }}</td>
+        <td>{{ col.estatus }}</td>
+        <td>
+          <button type="button" class="danger" (click)="remove(col)">Eliminar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p *ngIf="!loadingList && collections.length === 0">Todavía no has cargado ninguna colección.</p>
+</div>

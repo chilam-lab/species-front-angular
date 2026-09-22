@@ -1,0 +1,84 @@
+.auth-card {
+  max-width: 380px;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: 'Montserrat', sans-serif;
+
+  h1 {
+    margin: 0 0 1.5rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+    color: #333;
+    margin-top: 0.75rem;
+
+    &.checkbox {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    input[type='email'],
+    input[type='password'],
+    input[type='text'] {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+  }
+
+  .field-error {
+    color: #c0392b;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+  }
+
+  button {
+    margin-top: 1.5rem;
+    padding: 0.6rem;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    &:hover:not(:disabled) {
+      background-color: #555;
+    }
+  }
+
+  .auth-links {
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+    text-align: center;
+
+    a {
+      color: #333;
+      font-weight: 600;
+    }
+  }
+}

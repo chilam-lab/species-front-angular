@@ -1,0 +1,33 @@
+<div class="profile-security">
+  <h2>Cambiar contraseña</h2>
+  <p class="hint">
+    Debe tener entre 6 y 12 caracteres, incluir mayúscula, minúscula, al menos un número y sin espacios.
+  </p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>
+      Contraseña actual
+      <input type="password" formControlName="oldpassword" autocomplete="current-password" />
+    </label>
+
+    <label>
+      Nueva contraseña
+      <input type="password" formControlName="newpassword" autocomplete="new-password" />
+    </label>
+
+    <label>
+      Confirmar nueva contraseña
+      <input type="password" formControlName="confirmNewPassword" autocomplete="new-password" />
+    </label>
+    <div class="field-error" *ngIf="form.errors?.['passwordsMismatch'] && form.controls['confirmNewPassword'].touched">
+      Las contraseñas no coinciden.
+    </div>
+
+    <div class="field-success" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <button type="submit" [disabled]="submitting">
+      {{ submitting ? 'Guardando…' : 'Cambiar contraseña' }}
+    </button>
+  </form>
+</div>

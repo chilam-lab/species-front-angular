@@ -25,10 +25,18 @@
       </a>
     </li>
     <li>
-      <a href="#">
-        <span class="material-icons">login</span>
-        <span *ngIf="!collapsed">Login</span>
-      </a>
+      <ng-container *ngIf="(currentUser$ | async) as user; else loginLink">
+        <a routerLink="/perfil">
+          <span class="material-icons">account_circle</span>
+          <span *ngIf="!collapsed">{{ user.name }}</span>
+        </a>
+      </ng-container>
+      <ng-template #loginLink>
+        <a routerLink="/login">
+          <span class="material-icons">login</span>
+          <span *ngIf="!collapsed">Login</span>
+        </a>
+      </ng-template>
     </li>
   </ul>
 </nav>
