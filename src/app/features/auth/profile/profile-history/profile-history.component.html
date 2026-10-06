@@ -21,13 +21,15 @@
     </thead>
     <tbody>
       <tr *ngFor="let row of rows">
-        <td>{{ row.fecha_creacion | date:'short' }}</td>
+        <td class="nowrap">{{ row.fecha_creacion | date:'short' }}</td>
         <td>{{ contextSummary(row) }}</td>
-        <td>{{ targetSummary(row) }}</td>
-        <td>{{ covarsSummary(row) }}</td>
+        <td class="wrap">{{ targetSummary(row) }}</td>
+        <td class="wrap">{{ covarsSummary(row) }}</td>
         <td class="actions">
-          <button type="button" (click)="rerun(row)">Re-ejecutar</button>
-          <button type="button" class="danger" (click)="remove(row)">Eliminar</button>
+          <div class="actions-inner">
+            <button type="button" (click)="rerun(row)">Re-ejecutar</button>
+            <button type="button" class="danger" (click)="remove(row)">Eliminar</button>
+          </div>
         </td>
       </tr>
     </tbody>

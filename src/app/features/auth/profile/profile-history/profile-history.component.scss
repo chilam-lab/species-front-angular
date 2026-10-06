@@ -24,12 +24,24 @@
     min-width: 640px;
     border-collapse: collapse;
     font-size: 0.85rem;
-    white-space: nowrap;
 
     th, td {
       text-align: left;
+      vertical-align: middle;
       padding: 0.5rem 0.4rem;
       border-bottom: 1px solid #eee;
+    }
+
+    // Target/Covariables pueden ser largos (colecciones propias, varias
+    // covariables): se envuelven en vez de empujar los botones fuera de la tarjeta.
+    td.wrap {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      min-width: 140px;
+    }
+
+    td.nowrap {
+      white-space: nowrap;
     }
 
     th {
@@ -39,9 +51,16 @@
     }
   }
 
-  .actions {
+  // El <td> sigue siendo celda de tabla; el flex va en un contenedor interno.
+  td.actions {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .actions-inner {
     display: flex;
     gap: 0.5rem;
+    justify-content: flex-end;
 
     button {
       padding: 0.35rem 0.7rem;
