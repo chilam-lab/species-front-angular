@@ -5,7 +5,8 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
 import { DataCollectionRow, UploadCollectionPayload } from './mis-datos.models';
 
-const BASE_URL = environment.apiBaseUrl + '/loaddata';
+// Bajo /mdf porque el nginx de producción solo reenvía /mdf/ a middleware_datasources.
+const BASE_URL = environment.apiBaseUrl + '/mdf/loaddata';
 
 @Injectable({ providedIn: 'root' })
 export class MisDatosService {
