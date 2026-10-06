@@ -3,6 +3,16 @@
 
   <div class="covars-grid">
     <div>
+      <section class="card" style="margin:0 0 12px 0;" *ngIf="preloadedCovars.length > 0">
+        <h3>Covariables del análisis cargado</h3>
+        <div class="alert-info" *ngFor="let c of preloadedCovars" style="margin-bottom:8px;">
+          <strong>{{ c.source }}:</strong> {{ c.values }}
+        </div>
+        <p style="font-size:0.8rem; color:#777; margin:0;">
+          Si eliges nuevas covariables abajo, reemplazan a estas en el análisis.
+        </p>
+      </section>
+
       <section class="card" style="margin:0 0 12px 0;" *ngIf="state.covarTerceros.length > 0">
         <h3>Tus datos cargados (covariable)</h3>
         <div class="alert-info" *ngFor="let c of state.covarTerceros" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:8px;">

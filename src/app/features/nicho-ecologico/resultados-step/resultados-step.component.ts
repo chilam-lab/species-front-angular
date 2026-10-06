@@ -34,25 +34,26 @@ export class ResultadosStepComponent {
    *  Target/Covariables, así que taxonSel/taxonSel2Sources quedan vacíos. */
 
   get targetSourceLabel(): string {
-    if (this.state.preloadedMeta?.targetSourceLabel) return this.state.preloadedMeta.targetSourceLabel;
+    if (this.state.usingPreloadedTarget && this.state.preloadedMeta?.targetSourceLabel) return this.state.preloadedMeta.targetSourceLabel;
     if (this.state.targetTercero) return SOURCE_LABELS['terceros'];
     const id = this.state.targetSourceId;
     return id != null ? (SOURCE_LABELS[id] ?? `Fuente #${id}`) : '—';
   }
 
   get regionDisplay(): string {
-    if (this.state.preloadedMeta?.region) return this.state.preloadedMeta.region;
+    if (this.state.usingPreloadedTarget && this.state.preloadedMeta?.region) return this.state.preloadedMeta.region;
     if (this.state.regionName) return this.state.regionName;
     return this.state.regionId != null ? `Región #${this.state.regionId}` : '—';
   }
 
   get resolutionDisplay(): string {
-    return this.state.preloadedMeta?.resolution ?? this.state.resolution ?? '—';
+    if (this.state.usingPreloadedTarget && this.state.preloadedMeta?.resolution) return this.state.preloadedMeta.resolution;
+    return this.state.resolution ?? '—';
   }
 
   get targetTaxonSummary(): string {
-    if (this.state.preloadedPayload) {
-      return this.state.preloadedPayload.target?.[0]?.q || 'Sin selección';
+    if (this.state.usingPreloadedTarget) {
+      return this.state.preloadedPayload!.target?.[0]?.q || 'Sin selección';
     }
     if (this.state.targetTercero) return `Colección propia: ${this.state.targetTercero.nombre_datos}`;
     const levels = this.state.taxonSel?.levels ?? [];
@@ -63,8 +64,8 @@ export class ResultadosStepComponent {
   }
 
   get covariablesSummary(): { source: string; values: string }[] {
-    if (this.state.preloadedPayload) {
-      return (this.state.preloadedPayload.covars ?? []).map(c => ({
+    if (this.state.usingPreloadedCovars) {
+      return (this.state.preloadedPayload!.covars ?? []).map(c => ({
         source: SOURCE_LABELS[c.id_source] ?? `Fuente #${c.id_source}`,
         values: c.q || 'Sin selección'
       }));
@@ -108,7 +109,7 @@ export class ResultadosStepComponent {
       // autenticado) y meta (fuente/región/resolución legibles para el historial;
       // si venimos de un re-ejecutar, se reusa la meta original en vez de
       // reconstruirla, porque targetSourceId/regionName quedan vacíos en ese flujo).
-      const meta = this.state.preloadedMeta ?? {
+      const meta = (this.state.usingPreloadedTarget && this.state.preloadedMeta) || {
         targetSourceLabel: this.targetSourceLabel,
         region: this.regionDisplay,
         resolution: this.resolutionDisplay,

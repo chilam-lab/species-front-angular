@@ -162,6 +162,8 @@ export class TargetStepComponent implements OnInit {
       this.state.runStamp++;
       this.state.isAnalyzingOcc = false;
       this.state.targetMapGenerated = true;
+      // En un "Re-ejecutar", un mapa de Target regenerado reemplaza el target cargado.
+      this.state.markTargetEdited();
     };
     const onError = (err: unknown) => {
       console.error('Error al generar mapa de Target:', err);

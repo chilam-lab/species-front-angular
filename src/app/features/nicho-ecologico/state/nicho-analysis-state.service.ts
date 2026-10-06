@@ -60,14 +60,27 @@ export class NicheAnalysisStateService {
   targetMapGenerated = false;
 
   /** Cuando viene de "Re-ejecutar" en el Historial de análisis (Mi cuenta):
-   *  el payload exacto ya armado, sin pasar por Target/Covariables. Si está
-   *  presente, buildEpsScrPayload() lo regresa tal cual en vez de reconstruirlo
-   *  desde taxonSel/taxonSel2Sources (que quedan vacíos en este flujo). */
+   *  el payload exacto ya armado, sin pasar por Target/Covariables. Mientras
+   *  el usuario no cambie Target o Covariables, buildEpsScrPayload() usa esa
+   *  parte de aquí (ver preloadedTargetEdited/preloadedCovarsEdited). */
   preloadedPayload: EpsScrPayload | null = null;
 
   /** Info legible (fuente/región/resolución) que acompaña a preloadedPayload,
    *  para que el resumen de Resultados no quede vacío en un re-ejecutar. */
   preloadedMeta: { targetSourceLabel?: string; region?: string; resolution?: string } | null = null;
+
+  /** En un "Re-ejecutar", lo cargado es solo el punto de partida: si el usuario
+   *  regenera el mapa de Target o cambia las covariables, esa parte se arma con
+   *  lo nuevo y la otra se sigue tomando de preloadedPayload. */
+  preloadedTargetEdited = false;
+  preloadedCovarsEdited = false;
+
+  /** true mientras el target/covariables vigentes sean los del análisis cargado. */
+  get usingPreloadedTarget(): boolean { return !!this.preloadedPayload && !this.preloadedTargetEdited; }
+  get usingPreloadedCovars(): boolean { return !!this.preloadedPayload && !this.preloadedCovarsEdited; }
+
+  markTargetEdited(): void { if (this.preloadedPayload) this.preloadedTargetEdited = true; }
+  markCovarsEdited(): void { if (this.preloadedPayload) this.preloadedCovarsEdited = true; }
 
   // ===== Covariables =====
   taxonSel2Sources: CovariableSource[] = [];
@@ -177,22 +190,14 @@ export class NicheAnalysisStateService {
     return { id_source, q, offset: 0, limit: 100000 };
   }
 
-  /** Arma target+covars a partir del estado actual, igual que hacía onVisualizeNicho().
-   *  Devuelve null y deja validationMessages listos si falta algo. */
-  buildEpsScrPayload(): { grid_id: number; min_occ: number; target: RelationQuery[]; covars: RelationQuery[] } | null {
-    if (this.preloadedPayload) {
-      this.clearValidation();
-      return this.preloadedPayload;
-    }
+  private buildTargetQueries(): RelationQuery[] {
+    if (this.targetTercero) return [this.buildTerceroRelationQuery(this.targetTercero)];
+    const splist = this.buildSplistFrom(this.taxonSel);
+    if (splist.length === 0) return [];
+    return [this.buildRelationQuery(this.buildQFromSplist(splist), this.taxonSel.source_id ?? 1)];
+  }
 
-    if (!this.gridId) {
-      this.showValidationMessages(['Selecciona región y resolución en Target.']);
-      return null;
-    }
-
-    const splistTarget = this.buildSplistFrom(this.taxonSel);
-    const qTarget = this.buildQFromSplist(splistTarget);
-
+  private buildCovarsQueries(): RelationQuery[] {
     const covarsQueries: RelationQuery[] = this.taxonSel2Sources
       .map(src => {
         const parts: string[] = [];
@@ -211,26 +216,39 @@ export class NicheAnalysisStateService {
       })
       .filter((item): item is RelationQuery => item !== null);
 
-    const covarsTercerosQueries: RelationQuery[] = this.covarTerceros.map(c => this.buildTerceroRelationQuery(c));
-    const allCovarsQueries = [...covarsQueries, ...covarsTercerosQueries];
+    return [...covarsQueries, ...this.covarTerceros.map(c => this.buildTerceroRelationQuery(c))];
+  }
+
+  /** Arma target+covars a partir del estado actual. En un "Re-ejecutar", cada
+   *  parte sale de preloadedPayload mientras el usuario no la haya cambiado.
+   *  Devuelve null y deja validationMessages listos si falta algo. */
+  buildEpsScrPayload(): EpsScrPayload | null {
+    const pre = this.preloadedPayload;
+    if (pre && !this.preloadedTargetEdited && !this.preloadedCovarsEdited) {
+      this.clearValidation();
+      return pre;
+    }
+
+    const usePreTarget = this.usingPreloadedTarget;
+    const gridId = usePreTarget ? pre!.grid_id : this.gridId;
+    if (!gridId) {
+      this.showValidationMessages(['Selecciona región y resolución en Target.']);
+      return null;
+    }
+
+    const target = usePreTarget ? pre!.target : this.buildTargetQueries();
+    const covars = this.usingPreloadedCovars ? pre!.covars : this.buildCovarsQueries();
 
     const errs: string[] = [];
-    if (splistTarget.length === 0 && !this.targetTercero) errs.push('Selecciona al menos un taxón en Target, o una de tus colecciones cargadas.');
-    if (allCovarsQueries.length === 0) errs.push('Selecciona al menos un taxón o una colección propia en Covariables.');
+    if (target.length === 0) errs.push('Selecciona al menos un taxón en Target, o una de tus colecciones cargadas.');
+    if (covars.length === 0) errs.push('Selecciona al menos un taxón o una colección propia en Covariables.');
     if (errs.length) {
       this.showValidationMessages(errs);
       return null;
     }
 
     this.clearValidation();
-    return {
-      grid_id: this.gridId,
-      min_occ: 5,
-      target: this.targetTercero
-        ? [this.buildTerceroRelationQuery(this.targetTercero)]
-        : [this.buildRelationQuery(qTarget, this.taxonSel.source_id ?? 1)],
-      covars: allCovarsQueries
-    };
+    return { grid_id: gridId, min_occ: pre?.min_occ ?? 5, target, covars };
   }
 
   private buildTerceroRelationQuery(tercero: TerceroSelection): RelationQuery {
@@ -240,10 +258,10 @@ export class NicheAnalysisStateService {
   /** true si target+covariables ya tienen lo mínimo para poder ejecutar el análisis
    *  (usado por Resultados para habilitar/deshabilitar el botón sin mutar validationMessages). */
   canRunAnalysis(): boolean {
-    if (this.preloadedPayload) return true;
-    if (!this.gridId) return false;
-    const hasTarget = this.targetTercero != null || this.buildSplistFrom(this.taxonSel).length > 0;
-    if (!hasTarget) return false;
-    return this.taxonSel2Sources.length > 0 || this.covarTerceros.length > 0;
+    const hasGrid = this.usingPreloadedTarget ? !!this.preloadedPayload!.grid_id : !!this.gridId;
+    const hasTarget = this.usingPreloadedTarget || this.buildTargetQueries().length > 0;
+    const hasCovars = this.usingPreloadedCovars || this.buildCovarsQueries().length > 0;
+    return hasGrid && hasTarget && hasCovars;
   }
+
 }
