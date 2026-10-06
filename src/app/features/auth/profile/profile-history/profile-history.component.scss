@@ -52,7 +52,9 @@
   }
 
   // El <td> sigue siendo celda de tabla; el flex va en un contenedor interno.
-  td.actions {
+  // (No usar la clase "actions": styles.scss la define global con display:flex,
+  // lo que saca al <td> del layout de tabla y encima los botones.)
+  td.col-actions {
     width: 1%;
     white-space: nowrap;
   }
