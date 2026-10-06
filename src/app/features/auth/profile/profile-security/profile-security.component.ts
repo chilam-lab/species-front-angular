@@ -21,6 +21,9 @@ export class ProfileSecurityComponent {
   submitting = false;
   successMessage: string | null = null;
   errorMessage: string | null = null;
+  showOldPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
 
   constructor(private auth: AuthService, private fb: FormBuilder) {
     this.form = this.fb.group(

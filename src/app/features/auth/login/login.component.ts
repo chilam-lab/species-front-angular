@@ -14,6 +14,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 export class LoginComponent {
   submitting = false;
   errorMessage: string | null = null;
+  showPassword = false;
   form: FormGroup;
 
   constructor(

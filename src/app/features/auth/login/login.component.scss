@@ -42,6 +42,42 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+  }
+
+  .password-field {
+    position: relative;
+    display: flex;
+
+    input {
+      flex: 1;
+      padding-right: 2.2rem !important;
+    }
+
+    .toggle-visibility {
+      position: absolute;
+      right: 0.2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      margin: 0;
+      padding: 0.2rem;
+      background: transparent;
+      border: none;
+      color: #777;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+
+      &:hover {
+        background: transparent;
+        color: #333;
+      }
+
+      .material-icons {
+        font-size: 1.2rem;
+      }
     }
   }
 
