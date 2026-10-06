@@ -15,11 +15,16 @@
       <taxon-scope>
         <section class="card" style="margin:0;">
           <h3>Selector Taxonómico</h3>
-          <taxon-selector [enabledSourceIds]="state.covarsEnabledSourceIds" (speciesSelected)="onSpeciesSelected2($event)"></taxon-selector>
+          <taxon-selector [enabledSourceIds]="state.covarsEnabledSourceIds"
+                          [initialState]="state.covarSelectorState"
+                          (stateChange)="state.covarSelectorState = $event"
+                          (speciesSelected)="onSpeciesSelected2($event)"></taxon-selector>
         </section>
         <section class="card" style="margin:0;">
           <h3>Navegador Taxonómico</h3>
-          <taxon-navigator (selectionChange)="onNavigatorSelectionChange2($event)"></taxon-navigator>
+          <taxon-navigator [initialState]="state.covarNavigatorState"
+                           (stateChange)="state.covarNavigatorState = $event"
+                           (selectionChange)="onNavigatorSelectionChange2($event)"></taxon-navigator>
         </section>
       </taxon-scope>
     </div>

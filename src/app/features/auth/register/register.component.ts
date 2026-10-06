@@ -17,6 +17,7 @@ const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)\S{6,12}$/;
 })
 export class RegisterComponent {
   submitting = false;
+  showPassword = false;
   errorMessage: string | null = null;
   success = false;
   form: FormGroup;

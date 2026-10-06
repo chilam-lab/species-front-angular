@@ -45,6 +45,40 @@
     }
   }
 
+  .password-field {
+    position: relative;
+    display: flex;
+
+    input {
+      flex: 1;
+      padding-right: 2.2rem !important;
+    }
+
+    .toggle-visibility {
+      position: absolute;
+      right: 0.2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      margin: 0;
+      padding: 0.2rem;
+      background: transparent;
+      border: none;
+      color: #777;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+
+      &:hover {
+        background: transparent;
+        color: #333;
+      }
+
+      .material-icons {
+        font-size: 1.2rem;
+      }
+    }
+  }
+
   .field-error {
     color: #c0392b;
     font-size: 0.8rem;

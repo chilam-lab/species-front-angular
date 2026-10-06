@@ -11,6 +11,8 @@ import {
   TerceroSelection
 } from './nicho-analysis.models';
 import { environment } from '../../../../environments/environment';
+import type { TaxonSelectorSnapshot } from 'taxon-selector';
+import type { TaxonNavigatorSnapshot } from 'taxon-navigator';
 
 /**
  * Estado compartido del asistente de 3 pasos (Target / Covariables / Resultados).
@@ -42,6 +44,12 @@ export class NicheAnalysisStateService {
    *  catalogado — mutuamente excluyente con taxonSel en la UI de Target. */
   targetTercero: TerceroSelection | null = null;
 
+  /** Estado visual de taxon-selector/taxon-navigator de cada paso. Esos
+   *  componentes se destruyen al cambiar de paso; con esto se restauran tal
+   *  como el usuario los dejó al regresar (selecciones, pestaña, búsqueda). */
+  targetSelectorState: TaxonSelectorSnapshot | null = null;
+  targetNavigatorState: TaxonNavigatorSnapshot | null = null;
+
   mapQuery?: MapQuery;
   runStamp = 0;
   occValues: OccRow[] = [];
@@ -65,6 +73,8 @@ export class NicheAnalysisStateService {
   taxonSel2Sources: CovariableSource[] = [];
   /** Colecciones propias agregadas como covariable, adicionales a taxonSel2Sources. */
   covarTerceros: TerceroSelection[] = [];
+  covarSelectorState: TaxonSelectorSnapshot | null = null;
+  covarNavigatorState: TaxonNavigatorSnapshot | null = null;
   isAnalyzingNiche = false;
 
   // ===== Resultados =====

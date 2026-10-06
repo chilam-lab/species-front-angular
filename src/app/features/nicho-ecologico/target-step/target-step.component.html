@@ -31,12 +31,17 @@
       <taxon-scope *ngIf="!state.targetTercero">
         <section class="card" style="margin:0 0 12px 0;">
           <h3>Selector Taxonómico (Target)</h3>
-          <taxon-selector [forceSourceId]="state.targetSourceId" (speciesSelected)="onSpeciesSelected($event)"></taxon-selector>
+          <taxon-selector [forceSourceId]="state.targetSourceId"
+                          [initialState]="state.targetSelectorState"
+                          (stateChange)="state.targetSelectorState = $event"
+                          (speciesSelected)="onSpeciesSelected($event)"></taxon-selector>
         </section>
 
         <section class="card" style="margin:0;">
           <h3>Navegador Taxonómico (Target)</h3>
-          <taxon-navigator (selectionChange)="onNavigatorSelectionChange($event)"></taxon-navigator>
+          <taxon-navigator [initialState]="state.targetNavigatorState"
+                           (stateChange)="state.targetNavigatorState = $event"
+                           (selectionChange)="onNavigatorSelectionChange($event)"></taxon-navigator>
         </section>
       </taxon-scope>
     </div>

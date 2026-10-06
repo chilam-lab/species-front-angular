@@ -27,7 +27,13 @@
 
       <label>
         Contraseña
-        <input type="password" formControlName="password" autocomplete="new-password" />
+        <div class="password-field">
+          <input [type]="showPassword ? 'text' : 'password'" formControlName="password" autocomplete="new-password" />
+          <button type="button" class="toggle-visibility" (click)="showPassword = !showPassword"
+                  [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            <span class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
       </label>
       <div class="field-error" *ngIf="form.controls['password'].touched && form.controls['password'].invalid">
         6-12 caracteres, con mayúscula, minúscula y un número, sin espacios.
