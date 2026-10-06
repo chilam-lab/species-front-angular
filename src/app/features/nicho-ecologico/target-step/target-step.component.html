@@ -7,6 +7,9 @@
         <h3>Selector de Área (Target)</h3>
         <app-region-selector
           [enabledSourceIds]="[1, 3]"
+          [initialSourceId]="state.targetSourceId"
+          [initialRegionId]="state.regionId"
+          [initialGridId]="state.gridId"
           (sourceSelected)="onTargetSourceSelected($event)"
           (regionSelected)="onRegionSelected($event)"
           (resolutionSelected)="onResolutionSelected($event)"
@@ -14,7 +17,18 @@
         </app-region-selector>
       </section>
 
-      <taxon-scope>
+      <section class="card" style="margin:0 0 12px 0;" *ngIf="state.targetTercero">
+        <h3>Target: tus datos cargados</h3>
+        <div class="alert-info">
+          Estás usando tu colección <strong>"{{ state.targetTercero.nombre_datos }}"</strong> (cargada en
+          Mi cuenta → Mis datos) como target. Genera el mapa para continuar.
+        </div>
+        <button type="button" class="btn-primary" style="margin-top:8px;" (click)="useTaxonSelector()">
+          Usar selector taxonómico en su lugar
+        </button>
+      </section>
+
+      <taxon-scope *ngIf="!state.targetTercero">
         <section class="card" style="margin:0 0 12px 0;">
           <h3>Selector Taxonómico (Target)</h3>
           <taxon-selector [forceSourceId]="state.targetSourceId" (speciesSelected)="onSpeciesSelected($event)"></taxon-selector>

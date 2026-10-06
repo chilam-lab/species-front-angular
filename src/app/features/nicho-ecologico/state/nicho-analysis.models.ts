@@ -20,11 +20,16 @@ export type MapQuery = {
 
 /* === Tipos del payload del endpoint getEpsScrRelation === */
 export type RelationQuery = {
-  id_source: number;
-  q: string;         // "nivel = v1, v2; otro = w1"
+  id_source: number | 'terceros';
+  q: string;         // "nivel = v1, v2; otro = w1" (o etiqueta legible para 'terceros')
   offset: number;
   limit: number;
+  /** Solo cuando id_source === 'terceros': id de lista_carga_terceros. */
+  id_data?: number;
 };
+
+/** Una colección propia ("Mis datos") elegida como target o covariable. */
+export type TerceroSelection = { id_data: number; nombre_datos: string };
 
 export type EpsScrPayload = {
   grid_id: number;
@@ -43,9 +48,10 @@ export type CovariableSource = {
 
 /** Catálogo estático de fuentes ya usado en la app (ver WORLDCLIM_SOURCE_ID/DEM_SOURCE_ID
  * previos en app.component.ts) — solo para etiquetas legibles en el resumen de Resultados. */
-export const SOURCE_LABELS: Record<number, string> = {
+export const SOURCE_LABELS: Record<number | string, string> = {
   1: 'SNIB',
   2: 'WorldClim',
   3: 'GBIF',
-  4: 'DEM'
+  4: 'DEM',
+  terceros: 'Mis datos'
 };

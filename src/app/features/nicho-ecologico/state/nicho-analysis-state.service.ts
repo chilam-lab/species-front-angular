@@ -7,7 +7,8 @@ import {
   OccRow,
   RelationQuery,
   SplistItem,
-  TaxonSelectionPayload
+  TaxonSelectionPayload,
+  TerceroSelection
 } from './nicho-analysis.models';
 import { environment } from '../../../../environments/environment';
 
@@ -37,6 +38,9 @@ export class NicheAnalysisStateService {
   resolution: string | null = null;
   gridId: number | null = null;
   taxonSel: TaxonSelectionPayload = { levels: [] };
+  /** Si está presente, el target es una colección propia en vez de un taxón
+   *  catalogado — mutuamente excluyente con taxonSel en la UI de Target. */
+  targetTercero: TerceroSelection | null = null;
 
   mapQuery?: MapQuery;
   runStamp = 0;
@@ -59,6 +63,8 @@ export class NicheAnalysisStateService {
 
   // ===== Covariables =====
   taxonSel2Sources: CovariableSource[] = [];
+  /** Colecciones propias agregadas como covariable, adicionales a taxonSel2Sources. */
+  covarTerceros: TerceroSelection[] = [];
   isAnalyzingNiche = false;
 
   // ===== Resultados =====
@@ -133,7 +139,9 @@ export class NicheAnalysisStateService {
   collectValidation(gridId: number | null, splist: SplistItem[]): string[] {
     const msgs: string[] = [];
     if (!gridId || gridId <= 0) msgs.push('Selecciona una región y una resolución (gridId inválido).');
-    if (splist.length === 0) msgs.push('Selecciona al menos un taxón en el navegador.');
+    if (splist.length === 0 && !this.targetTercero) {
+      msgs.push('Selecciona al menos un taxón en el navegador, o una de tus colecciones cargadas.');
+    }
     return msgs;
   }
 
@@ -193,9 +201,12 @@ export class NicheAnalysisStateService {
       })
       .filter((item): item is RelationQuery => item !== null);
 
+    const covarsTercerosQueries: RelationQuery[] = this.covarTerceros.map(c => this.buildTerceroRelationQuery(c));
+    const allCovarsQueries = [...covarsQueries, ...covarsTercerosQueries];
+
     const errs: string[] = [];
-    if (splistTarget.length === 0) errs.push('Selecciona al menos un taxón en Target.');
-    if (covarsQueries.length === 0) errs.push('Selecciona al menos un taxón en Covariables.');
+    if (splistTarget.length === 0 && !this.targetTercero) errs.push('Selecciona al menos un taxón en Target, o una de tus colecciones cargadas.');
+    if (allCovarsQueries.length === 0) errs.push('Selecciona al menos un taxón o una colección propia en Covariables.');
     if (errs.length) {
       this.showValidationMessages(errs);
       return null;
@@ -205,9 +216,15 @@ export class NicheAnalysisStateService {
     return {
       grid_id: this.gridId,
       min_occ: 5,
-      target: [this.buildRelationQuery(qTarget, this.taxonSel.source_id ?? 1)],
-      covars: covarsQueries
+      target: this.targetTercero
+        ? [this.buildTerceroRelationQuery(this.targetTercero)]
+        : [this.buildRelationQuery(qTarget, this.taxonSel.source_id ?? 1)],
+      covars: allCovarsQueries
     };
+  }
+
+  private buildTerceroRelationQuery(tercero: TerceroSelection): RelationQuery {
+    return { id_source: 'terceros', id_data: tercero.id_data, q: `Mi colección: ${tercero.nombre_datos}`, offset: 0, limit: 0 };
   }
 
   /** true si target+covariables ya tienen lo mínimo para poder ejecutar el análisis
@@ -215,8 +232,8 @@ export class NicheAnalysisStateService {
   canRunAnalysis(): boolean {
     if (this.preloadedPayload) return true;
     if (!this.gridId) return false;
-    const splistTarget = this.buildSplistFrom(this.taxonSel);
-    if (splistTarget.length === 0) return false;
-    return this.taxonSel2Sources.length > 0;
+    const hasTarget = this.targetTercero != null || this.buildSplistFrom(this.taxonSel).length > 0;
+    if (!hasTarget) return false;
+    return this.taxonSel2Sources.length > 0 || this.covarTerceros.length > 0;
   }
 }

@@ -2,8 +2,12 @@
   <h2>Cargar nueva colección de datos</h2>
   <p class="hint">
     El archivo debe estar en formato CSV, XLS o XLSX. La primera fila debe traer los encabezados.
-    Las columnas deben contener el nombre y tipo de dato descritos a continuación:
+    Solo las columnas listadas abajo tienen un significado fijo:
   </p>
+
+  <button type="button" class="secondary" (click)="downloadTemplate()">
+    Descargar plantilla de referencia (.xlsx)
+  </button>
 
   <table class="spec">
     <thead>
@@ -21,6 +25,15 @@
       </tr>
     </tbody>
   </table>
+
+  <p class="hint">
+    Puedes incluir cualquier otra columna (taxonomía, atributos propios, etc.); se conservará
+    tal cual como metadato de contexto del registro, sin validarse ni exigirse.
+  </p>
+
+  <p class="hint" *ngIf="metadataColumns.length > 0">
+    Columnas adicionales detectadas en el archivo: {{ metadataColumns.join(', ') }}
+  </p>
 
   <div class="upload-form">
     <label>
@@ -57,6 +70,7 @@
   <table *ngIf="!loadingList && collections.length > 0">
     <thead>
       <tr>
+        <th>Uso en Nicho Ecológico</th>
         <th>Nombre</th>
         <th>Fecha de carga</th>
         <th>Fecha de expiración</th>
@@ -66,6 +80,20 @@
     </thead>
     <tbody>
       <tr *ngFor="let col of collections">
+        <td class="uso-radios">
+          <label>
+            <input type="radio" [name]="'uso-' + col.id" [checked]="getRole(col.id) === 'ninguno'" (change)="setRole(col.id, 'ninguno')" />
+            Ninguno
+          </label>
+          <label>
+            <input type="radio" [name]="'uso-' + col.id" [checked]="getRole(col.id) === 'target'" (change)="setRole(col.id, 'target')" />
+            Target
+          </label>
+          <label>
+            <input type="radio" [name]="'uso-' + col.id" [checked]="getRole(col.id) === 'covariable'" (change)="setRole(col.id, 'covariable')" />
+            Covariable
+          </label>
+        </td>
         <td>{{ col.nombre_datos }}</td>
         <td>{{ col.fecha_carga | date:'short' }}</td>
         <td>{{ col.fecha_expiracion | date:'short' }}</td>
@@ -76,6 +104,10 @@
       </tr>
     </tbody>
   </table>
+
+  <button type="button" class="secondary" *ngIf="!loadingList && collections.length > 0" [disabled]="!hasSelection" (click)="usarMiSeleccion()">
+    Usar mi selección en Nicho Ecológico →
+  </button>
 
   <p *ngIf="!loadingList && collections.length === 0">Todavía no has cargado ninguna colección.</p>
 </div>

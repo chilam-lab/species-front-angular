@@ -32,4 +32,16 @@ export class MisDatosService {
       })
       .pipe(map(() => void 0));
   }
+
+  /** Celdas ocupadas por una colección propia, para usarla como target o
+   *  covariable en Nicho Ecológico (misma forma que OccService.getOccOnMap). */
+  getCells(id_data: number, gridId: number): Observable<{ cell_id: number; occ: number }[]> {
+    return this.http
+      .post<{ status: number; data: { cell_id: number; occ: number }[] }>(`${BASE_URL}/getThirdPartyCells`, {
+        sessionid: this.auth.sessionIdOrNull,
+        id_data,
+        grid_id: gridId,
+      })
+      .pipe(map((res) => res.data ?? []));
+  }
 }

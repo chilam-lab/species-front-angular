@@ -35,6 +35,7 @@ export class ResultadosStepComponent {
 
   get targetSourceLabel(): string {
     if (this.state.preloadedMeta?.targetSourceLabel) return this.state.preloadedMeta.targetSourceLabel;
+    if (this.state.targetTercero) return SOURCE_LABELS['terceros'];
     const id = this.state.targetSourceId;
     return id != null ? (SOURCE_LABELS[id] ?? `Fuente #${id}`) : '—';
   }
@@ -53,6 +54,7 @@ export class ResultadosStepComponent {
     if (this.state.preloadedPayload) {
       return this.state.preloadedPayload.target?.[0]?.q || 'Sin selección';
     }
+    if (this.state.targetTercero) return `Colección propia: ${this.state.targetTercero.nombre_datos}`;
     const levels = this.state.taxonSel?.levels ?? [];
     if (levels.length === 0) return 'Sin selección';
     return levels
@@ -67,7 +69,7 @@ export class ResultadosStepComponent {
         values: c.q || 'Sin selección'
       }));
     }
-    return this.state.taxonSel2Sources.map(src => {
+    const taxonSummaries = this.state.taxonSel2Sources.map(src => {
       const label = SOURCE_LABELS[src.source_id] ?? `Fuente #${src.source_id}`;
       if (src.context?.idfuente != null || src.context?.layer) {
         const parts = [
@@ -79,6 +81,11 @@ export class ResultadosStepComponent {
       const values = src.levels.map(l => `${l.level}: ${(l.values ?? []).join(', ')}`).join(' · ');
       return { source: label, values: values || 'Sin selección' };
     });
+    const tercerosSummaries = this.state.covarTerceros.map(c => ({
+      source: SOURCE_LABELS['terceros'],
+      values: c.nombre_datos
+    }));
+    return [...taxonSummaries, ...tercerosSummaries];
   }
 
   get canRunAnalysis(): boolean {
@@ -107,7 +114,10 @@ export class ResultadosStepComponent {
         resolution: this.resolutionDisplay,
       };
       const payloadConSesion = { ...payload, sessionid: this.auth.sessionIdOrNull, meta };
-      this.mapNiche.getEpsScrRelation(payloadConSesion);
+      // as any: mapa-maplibre reenvía esto tal cual como JSON al backend, pero su propio
+      // tipo RelationQuery no conoce id_source:'terceros' (colecciones propias), que
+      // resuelve middleware_datasources — no afecta el runtime, solo el chequeo de tipos.
+      this.mapNiche.getEpsScrRelation(payloadConSesion as any);
     } else {
       console.warn('getEpsScrRelation no existe en app-mapa-maplibre.');
       this.state.showValidationMessages(['No se encontró getEpsScrRelation en el mapa de Resultados.']);

@@ -19,6 +19,17 @@ import { TaxonSelectionPayload } from '../state/nicho-analysis.models';
 export class CovariablesStepComponent {
   constructor(public state: NicheAnalysisStateService, private router: Router) {}
 
+  goBack(): void {
+    this.router.navigate(['/nicho-ecologico/target']);
+  }
+
+  /** Las colecciones propias se agregan desde Mi cuenta > Mis datos ("Usar como
+   *  Covariable"); aquí solo se pueden quitar. */
+  quitarColeccion(id_data: number): void {
+    this.state.covarTerceros = this.state.covarTerceros.filter((c) => c.id_data !== id_data);
+    this.state.clearValidation();
+  }
+
   onSpeciesSelected2(species: any): void {
     console.log('Especie seleccionada (Covars):', species);
   }

@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { MapaMaplibreComponent } from 'mapa-maplibre';
@@ -9,6 +10,8 @@ import { TaxonNavigatorComponent } from 'taxon-navigator';
 import { TaxonScopeComponent } from 'taxon-scope';
 
 import { OccService } from '../../../services/occ.service';
+import { MisDatosService } from '../../../core/mis-datos/mis-datos.service';
+import { PendingTerceroSelectionService } from '../../../core/nicho-rerun/pending-tercero-selection.service';
 import { NicheAnalysisStateService } from '../state/nicho-analysis-state.service';
 import { TaxonSelectionPayload } from '../state/nicho-analysis.models';
 
@@ -16,21 +19,57 @@ import { TaxonSelectionPayload } from '../state/nicho-analysis.models';
   selector: 'app-target-step',
   standalone: true,
   imports: [
-    CommonModule, MapaMaplibreComponent, RegionSelectorComponent,
+    CommonModule, FormsModule, MapaMaplibreComponent, RegionSelectorComponent,
     TaxonSelectorComponent, TaxonNavigatorComponent, TaxonScopeComponent
   ],
   templateUrl: './target-step.component.html',
   styleUrls: ['./target-step.component.scss']
 })
-export class TargetStepComponent {
+export class TargetStepComponent implements OnInit {
   constructor(
     public state: NicheAnalysisStateService,
     private occService: OccService,
+    private misDatos: MisDatosService,
+    private pendingTercero: PendingTerceroSelectionService,
     private router: Router
   ) {}
 
+  /** Recoge la selección combinada hecha en "Mi cuenta > Mis datos" (botón
+   *  "Usar mi selección"), que viaja por PendingTerceroSelectionService porque
+   *  NicheAnalysisStateService se recrea cada vez que se entra a esta ruta. */
+  ngOnInit(): void {
+    const pending = this.pendingTercero.consume();
+    if (!pending) return;
+
+    if (pending.target) {
+      this.state.targetTercero = pending.target;
+      this.state.targetMapGenerated = false;
+    }
+
+    if (pending.covariables.length > 0) {
+      const existingIds = new Set(this.state.covarTerceros.map(c => c.id_data));
+      const toAdd = pending.covariables.filter(c => !existingIds.has(c.id_data));
+      this.state.covarTerceros = [...this.state.covarTerceros, ...toAdd];
+    }
+  }
+
+  /** Quita la colección propia usada como target y regresa al selector taxonómico. */
+  useTaxonSelector(): void {
+    this.state.targetTercero = null;
+    this.state.targetMapGenerated = false;
+    this.state.clearValidation();
+  }
+
+  /** region-selector remonta (y vuelve a emitir su selección) cada vez que se
+   *  re-entra a este paso — por eso [initialSourceId/RegionId/GridId] le pasan
+   *  de vuelta lo ya guardado en el state, y estos manejadores no invalidan el
+   *  mapa si el valor entrante es igual al que ya había (evita que un simple
+   *  "ir y volver" borre un mapa ya generado). */
   onTargetSourceSelected(sourceId: number): void {
-    this.state.targetSourceId = Number(sourceId);
+    const next = Number(sourceId);
+    if (this.state.targetSourceId === next) return;
+
+    this.state.targetSourceId = next;
     this.state.covarsEnabledSourceIds = [
       this.state.targetSourceId,
       NicheAnalysisStateService.WORLDCLIM_SOURCE_ID,
@@ -41,6 +80,8 @@ export class TargetStepComponent {
   }
 
   onRegionSelected(regionId: number): void {
+    if (this.state.regionId === regionId) return;
+
     this.state.regionId = regionId;
     this.state.targetMapGenerated = false;
     this.state.clearValidation();
@@ -48,12 +89,16 @@ export class TargetStepComponent {
   }
 
   onResolutionSelected(resolution: string): void {
+    if (this.state.resolution === resolution) return;
+
     this.state.resolution = resolution;
     this.state.targetMapGenerated = false;
     this.state.clearValidation();
   }
 
   onGridIdSelected(gridId: number): void {
+    if (this.state.gridId === gridId) return;
+
     this.state.gridId = gridId;
     this.state.targetMapGenerated = false; // cambiar la malla invalida el mapa ya generado
     this.state.clearValidation();
@@ -112,25 +157,37 @@ export class TargetStepComponent {
       taxonomy: this.state.taxonSel.levels ?? []
     };
 
+    const onSuccess = (data: { cell_id: number; occ: number }[]) => {
+      this.state.occValues = data ?? [];
+      this.state.runStamp++;
+      this.state.isAnalyzingOcc = false;
+      this.state.targetMapGenerated = true;
+    };
+    const onError = (err: unknown) => {
+      console.error('Error al generar mapa de Target:', err);
+      this.state.occValues = [];
+      this.state.runStamp++;
+      this.state.showValidationMessages(['Ocurrió un error al consultar datos de ocurrencia.']);
+      this.state.isAnalyzingOcc = false;
+    };
+
+    if (this.state.targetTercero) {
+      this.misDatos.getCells(this.state.targetTercero.id_data, this.state.gridId).subscribe({
+        next: onSuccess,
+        error: onError,
+      });
+      return;
+    }
+
     const payload = { grid_id: this.state.gridId, array_splist, source_id: this.state.taxonSel.source_id ?? 1 };
     this.occService.getOccOnMap(payload).subscribe({
-      next: ({ data }) => {
-        this.state.occValues = data ?? [];
-        this.state.runStamp++;
-        this.state.isAnalyzingOcc = false;
-        this.state.targetMapGenerated = true;
-      },
-      error: (err) => {
-        console.error('getOccOnMap error:', err);
-        this.state.occValues = [];
-        this.state.runStamp++;
-        this.state.showValidationMessages(['Ocurrió un error al consultar datos de ocurrencia.']);
-        this.state.isAnalyzingOcc = false;
-      }
+      next: ({ data }) => onSuccess(data),
+      error: onError,
     });
   }
 
   get canAdvance(): boolean {
+    if (this.state.targetTercero) return this.state.targetMapGenerated;
     const splist = this.state.buildSplistFrom(this.state.taxonSel);
     return this.state.collectValidation(this.state.gridId, splist).length === 0 && this.state.targetMapGenerated;
   }

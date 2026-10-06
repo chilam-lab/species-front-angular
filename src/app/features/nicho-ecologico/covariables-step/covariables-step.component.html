@@ -3,6 +3,15 @@
 
   <div class="covars-grid">
     <div>
+      <section class="card" style="margin:0 0 12px 0;" *ngIf="state.covarTerceros.length > 0">
+        <h3>Tus datos cargados (covariable)</h3>
+        <div class="alert-info" *ngFor="let c of state.covarTerceros" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <span>{{ c.nombre_datos }}</span>
+          <button type="button" class="btn-primary" (click)="quitarColeccion(c.id_data)">Quitar</button>
+        </div>
+        <p style="font-size:0.8rem; color:#777; margin:0;">Agrega más colecciones propias desde Mi cuenta → Mis datos.</p>
+      </section>
+
       <taxon-scope>
         <section class="card" style="margin:0;">
           <h3>Selector Taxonómico</h3>
@@ -16,7 +25,8 @@
     </div>
   </div>
 
-  <div class="card actions" style="margin-top:12px;">
+  <div class="card actions" style="margin-top:12px; gap: 12px;">
+    <button class="btn-primary" type="button" (click)="goBack()">← Volver a Target</button>
     <button class="btn-primary" type="button" (click)="goNext()">
       Siguiente: Resultados →
     </button>
