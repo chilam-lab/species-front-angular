@@ -28,6 +28,9 @@
       <input type="checkbox" formControlName="aviso" />
       Acepto el aviso de privacidad y términos de uso.
     </label>
+    <div class="field-error" *ngIf="form.controls['aviso'].touched && form.controls['aviso'].invalid">
+      Debes aceptar el aviso de privacidad y los términos de uso para continuar.
+    </div>
 
     <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
