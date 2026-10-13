@@ -97,7 +97,9 @@ export class ResultadosStepComponent {
     const f = this.state.usingPreloadedTarget
       ? this.state.preloadedPayload!.target_filters
       : this.state.targetFilters;
-    return describeTargetFilters(f);
+    const base = describeTargetFilters(f);
+    const n = this.state.excludedCells.length;
+    return n ? `${base} · ${n} celda${n === 1 ? '' : 's'} borrada${n === 1 ? '' : 's'}` : base;
   }
 
   get analysisOptionsSummary(): string {

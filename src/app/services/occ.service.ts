@@ -23,6 +23,8 @@ export interface SplistItem {
 export interface OccRow {
   cell_id: number;
   occ: number;
+  /** false = celda fuera de la región del análisis (no cuenta en ni). */
+  in_region?: boolean;
 }
 
 /** Respuesta cruda posible desde el backend */
@@ -64,8 +66,9 @@ export class OccService {
             const rawId = r.cell_id ?? r.cell_is ?? r.id ?? r.cellId;
             const idNum = toNumberSafe(rawId);
             const occNum = toNumberSafe(r.occ);
+            const inRegion = (r as any).in_region;
             return (idNum != null && occNum != null)
-              ? { cell_id: idNum, occ: occNum }
+              ? { cell_id: idNum, occ: occNum, ...(typeof inRegion === 'boolean' ? { in_region: inRegion } : {}) }
               : null;
           })
           .filter((x): x is OccRow => !!x);

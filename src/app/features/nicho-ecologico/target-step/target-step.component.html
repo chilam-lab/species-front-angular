@@ -80,8 +80,27 @@
         <h3>Mapa de Presencia (Target)</h3>
         <div class="occ-summary" *ngIf="state.occSummary as s" aria-live="polite">
           <span *ngIf="s.occurrences !== null"><strong>{{ s.occurrences | number }}</strong> registros</span>
-          <span><strong>{{ s.cells | number }}</strong> celdas con presencia (ni)</span>
+          <span><strong>{{ remainingCells | number }}</strong> celdas con presencia (ni)</span>
+          <span *ngIf="state.excludedCells.length" class="excluded-note">
+            {{ state.excludedCells.length | number }} borradas
+          </span>
           <span *ngIf="s.species !== null && s.species > 1"><strong>{{ s.species | number }}</strong> especies</span>
+        </div>
+        <div class="cell-tools" *ngIf="state.occValues.length">
+          <button type="button" class="tool-btn" [class.active]="state.cellDeleteMode"
+                  (click)="state.cellDeleteMode = !state.cellDeleteMode"
+                  [attr.aria-pressed]="state.cellDeleteMode">
+            <span class="material-icons" aria-hidden="true">{{ state.cellDeleteMode ? 'check' : 'delete_sweep' }}</span>
+            {{ state.cellDeleteMode ? 'Terminar de borrar' : 'Borrar celdas' }}
+          </button>
+          <button type="button" class="tool-btn" *ngIf="state.excludedCells.length"
+                  (click)="state.clearExcludedCells()">
+            <span class="material-icons" aria-hidden="true">restore</span>
+            Restaurar {{ state.excludedCells.length }}
+          </button>
+          <span class="tool-hint" *ngIf="state.cellDeleteMode">
+            Haz clic en una celda para quitarla del análisis (se pinta en gris); otro clic la devuelve.
+          </span>
         </div>
         <div class="map-wrap">
           <app-mapa-maplibre
@@ -92,7 +111,10 @@
             [showLayerControl]="true"
             [controlBaseLayer]="true"
             [controlScoreLayer]="false"
-            [loading]="state.isAnalyzingOcc">
+            [loading]="state.isAnalyzingOcc"
+            [cellSelectMode]="state.cellDeleteMode"
+            [excludedCells]="state.excludedCells"
+            (cellClick)="onCellClick($event)">
           </app-mapa-maplibre>
         </div>
       </section>

@@ -162,6 +162,9 @@ export class TargetStepComponent implements OnInit {
 
     const onSuccess = (data: { cell_id: number; occ: number }[], summary?: OccSummary | null) => {
       this.state.occValues = data ?? [];
+      // Mapa nuevo: las celdas borradas del anterior ya no aplican.
+      this.state.excludedCells = [];
+      this.state.cellDeleteMode = false;
       this.state.occSummary = summary
         ? { ...summary }
         : { species: null, occurrences: null, cells: (data ?? []).length };
@@ -198,6 +201,21 @@ export class TargetStepComponent implements OnInit {
       next: ({ data, summary }) => onSuccess(data, summary),
       error: onError,
     });
+  }
+
+  onCellClick(ev: { cell_id: number | string }): void {
+    if (!this.state.cellDeleteMode) return;
+    this.state.toggleExcludedCell(Number(ev.cell_id));
+  }
+
+  /** Celdas con presencia que siguen en el análisis tras el borrado. Solo se
+   *  descuentan las borradas dentro de la región (las de fuera no cuentan en ni). */
+  get remainingCells(): number | null {
+    const s = this.state.occSummary;
+    if (!s) return null;
+    const excluded = new Set(this.state.excludedCells);
+    const removed = this.state.occValues.filter((o) => excluded.has(Number(o.cell_id)) && o.in_region !== false).length;
+    return Math.max(0, s.cells - removed);
   }
 
   readonly maxYear = new Date().getFullYear();

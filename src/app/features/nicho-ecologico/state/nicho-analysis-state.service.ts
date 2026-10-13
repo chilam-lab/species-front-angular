@@ -87,6 +87,26 @@ export class NicheAnalysisStateService {
   mapQuery?: MapQuery;
   runStamp = 0;
   occValues: OccRow[] = [];
+
+  /** Borrado de celdas del target: con cellDeleteMode activo, un clic en una
+   *  celda con presencia la excluye (o la devuelve) del análisis. */
+  cellDeleteMode = false;
+  excludedCells: number[] = [];
+
+  toggleExcludedCell(cellId: number): void {
+    const id = Number(cellId);
+    if (!Number.isFinite(id)) return;
+    if (!this.occValues.some((o) => Number(o.cell_id) === id)) return; // solo celdas del target
+    this.excludedCells = this.excludedCells.includes(id)
+      ? this.excludedCells.filter((c) => c !== id)
+      : [...this.excludedCells, id];
+    this.markTargetEdited();
+  }
+
+  clearExcludedCells(): void {
+    if (this.excludedCells.length) this.markTargetEdited();
+    this.excludedCells = [];
+  }
   /** Resumen del último mapa de Target (null si no hay o es una colección propia
    *  sin conteo de registros). */
   occSummary: { species: number | null; occurrences: number | null; cells: number } | null = null;
@@ -148,6 +168,8 @@ export class NicheAnalysisStateService {
 
   /** Carga las opciones de un payload guardado (Re-ejecutar). */
   loadAnalysisOptions(payload: EpsScrPayload): void {
+    this.excludedCells = Array.isArray(payload.excluded_cells) ? payload.excluded_cells.map(Number) : [];
+    this.cellDeleteMode = false;
     this.targetFilters = { ...DEFAULT_TARGET_FILTERS, ...(payload.target_filters ?? {}) };
     this.minNjEnabled = (payload.min_nj ?? 0) > 0;
     this.minNj = this.minNjEnabled ? payload.min_nj! : 5;
@@ -325,7 +347,10 @@ export class NicheAnalysisStateService {
 
     this.clearValidation();
     const target_filters = usePreTarget ? pre!.target_filters : this.activeTargetFilters;
-    return this.withAnalysisOptions({ grid_id: gridId, min_occ: pre?.min_occ ?? 5, target, covars, target_filters });
+    return this.withAnalysisOptions({
+      grid_id: gridId, min_occ: pre?.min_occ ?? 5, target, covars, target_filters,
+      excluded_cells: [...this.excludedCells],
+    });
   }
 
   private buildTerceroRelationQuery(tercero: TerceroSelection): RelationQuery {

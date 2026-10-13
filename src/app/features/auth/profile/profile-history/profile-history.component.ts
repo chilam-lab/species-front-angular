@@ -86,6 +86,7 @@ export class ProfileHistoryComponent implements OnInit {
     if (!p || (p.min_nj === undefined && p.apriori === undefined && p.mapa_prob === undefined && !p.target_filters)) return ['—'];
     return [
       ...(p.target_filters ? [`Target: ${describeTargetFilters(p.target_filters)}`] : []),
+      ...(p.excluded_cells?.length ? [`Celdas borradas: ${p.excluded_cells.length}`] : []),
       (p.min_nj ?? 0) > 0 ? `nj mínimo: ${p.min_nj}` : 'Sin mínimo de nj',
       `A priori: ${p.apriori ? 'sí' : 'no'}`,
       `Probabilidad: ${p.mapa_prob ? 'sí' : 'no'}`,

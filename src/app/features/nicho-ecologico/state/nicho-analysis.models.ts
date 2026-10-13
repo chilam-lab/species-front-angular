@@ -10,7 +10,7 @@ export type TaxonSelectionPayload = {
 };
 
 export type SplistItem = { nivel: string; valor: string };
-export type OccRow = { cell_id: number; occ: number };
+export type OccRow = { cell_id: number; occ: number; in_region?: boolean };
 
 export type MapQuery = {
   regionId: number;
@@ -56,6 +56,9 @@ export type EpsScrPayload = {
   mapa_prob?: boolean;  // mapa de probabilidad (logística del score con a priori)
   /** Filtros del target; ausentes = sin filtro. */
   target_filters?: TargetFilters;
+  /** Celdas del target que el usuario borró en el mapa: se quitan de la región
+   *  del análisis (target, covariables y n). */
+  excluded_cells?: number[];
 };
 
 export type EpsScrRelationResponse = { uuid: string };
