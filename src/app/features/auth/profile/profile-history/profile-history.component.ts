@@ -79,6 +79,19 @@ export class ProfileHistoryComponent implements OnInit {
       .join(' · ');
   }
 
+  /** Opciones del análisis guardadas en el payload (min_nj, a priori, mapa de
+   *  probabilidad). Análisis anteriores a esas opciones no las traen. */
+  optionsSummary(row: AnalysisHistoryRow): string {
+    const p = row.payload;
+    if (!p || (p.min_nj === undefined && p.apriori === undefined && p.mapa_prob === undefined)) return '—';
+    const parts = [
+      (p.min_nj ?? 0) > 0 ? `nj mínimo: ${p.min_nj}` : 'Sin mínimo de nj',
+      `A priori: ${p.apriori ? 'sí' : 'no'}`,
+      `Probabilidad: ${p.mapa_prob ? 'sí' : 'no'}`,
+    ];
+    return parts.join(' · ');
+  }
+
   /** Manda al wizard de nicho-ecológico directo a Resultados con la config
    *  lista: targetMapGeneratedGuard consume el payload pendiente y solo falta
    *  dar clic en "Ejecutar Análisis" ahí. */

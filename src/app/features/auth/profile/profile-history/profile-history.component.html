@@ -16,6 +16,7 @@
         <th>Fuente · Región · Resolución</th>
         <th>Target</th>
         <th>Covariables</th>
+        <th>Opciones</th>
         <th></th>
       </tr>
     </thead>
@@ -25,6 +26,7 @@
         <td>{{ contextSummary(row) }}</td>
         <td class="wrap">{{ targetSummary(row) }}</td>
         <td class="wrap">{{ covarsSummary(row) }}</td>
+        <td class="wrap">{{ optionsSummary(row) }}</td>
         <td class="col-actions">
           <div class="actions-inner">
             <button type="button" (click)="rerun(row)">Re-ejecutar</button>
