@@ -9,7 +9,7 @@ import { TaxonSelectorComponent } from 'taxon-selector';
 import { TaxonNavigatorComponent } from 'taxon-navigator';
 import { TaxonScopeComponent } from 'taxon-scope';
 
-import { OccService } from '../../../services/occ.service';
+import { OccService, OccSummary } from '../../../services/occ.service';
 import { MisDatosService } from '../../../core/mis-datos/mis-datos.service';
 import { PendingTerceroSelectionService } from '../../../core/nicho-rerun/pending-tercero-selection.service';
 import { NicheAnalysisStateService } from '../state/nicho-analysis-state.service';
@@ -160,8 +160,11 @@ export class TargetStepComponent implements OnInit {
       taxonomy: this.state.taxonSel.levels ?? []
     };
 
-    const onSuccess = (data: { cell_id: number; occ: number }[]) => {
+    const onSuccess = (data: { cell_id: number; occ: number }[], summary?: OccSummary | null) => {
       this.state.occValues = data ?? [];
+      this.state.occSummary = summary
+        ? { ...summary }
+        : { species: null, occurrences: null, cells: (data ?? []).length };
       this.state.runStamp++;
       this.state.isAnalyzingOcc = false;
       this.state.targetMapGenerated = true;
@@ -171,6 +174,7 @@ export class TargetStepComponent implements OnInit {
     const onError = (err: unknown) => {
       console.error('Error al generar mapa de Target:', err);
       this.state.occValues = [];
+      this.state.occSummary = null;
       this.state.runStamp++;
       this.state.showValidationMessages(['Ocurrió un error al consultar datos de ocurrencia.']);
       this.state.isAnalyzingOcc = false;
@@ -191,7 +195,7 @@ export class TargetStepComponent implements OnInit {
       filters: this.state.activeTargetFilters,
     };
     this.occService.getOccOnMap(payload).subscribe({
-      next: ({ data }) => onSuccess(data),
+      next: ({ data, summary }) => onSuccess(data, summary),
       error: onError,
     });
   }

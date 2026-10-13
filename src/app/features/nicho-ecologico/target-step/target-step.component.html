@@ -77,6 +77,11 @@
     <div class="right-pane">
       <section class="map-card" style="margin:0;">
         <h3>Mapa de Presencia (Target)</h3>
+        <div class="occ-summary" *ngIf="state.occSummary as s" aria-live="polite">
+          <span *ngIf="s.occurrences !== null"><strong>{{ s.occurrences | number }}</strong> registros</span>
+          <span><strong>{{ s.cells | number }}</strong> celdas con presencia (ni)</span>
+          <span *ngIf="s.species !== null && s.species > 1"><strong>{{ s.species | number }}</strong> especies</span>
+        </div>
         <div class="map-wrap">
           <app-mapa-maplibre
             [mapId]="'map-target'"

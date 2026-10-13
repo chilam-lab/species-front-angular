@@ -6,6 +6,14 @@ import { environment } from '../../environments/environment';
 import type { TargetFilters } from '../features/nicho-ecologico/state/nicho-analysis.models';
 
 
+/** Resumen del mapa de Target: especies con registros, registros que pasan
+ *  los filtros y celdas con presencia dentro de la región (ni). */
+export interface OccSummary {
+  species: number;
+  occurrences: number;
+  cells: number;
+}
+
 export interface SplistItem {
   nivel: string;
   valor: string;
@@ -41,7 +49,7 @@ export class OccService {
    * Obtiene ocurrencias agregadas para el mapa.
    * SIEMPRE normaliza a { cell_id: number, occ: number } para evitar problemas de tipado/ids.
    */
-  getOccOnMap(payload: { grid_id: number; array_splist: SplistItem[]; source_id?: number; filters?: TargetFilters }): Observable<{ data: OccRow[] }> {
+  getOccOnMap(payload: { grid_id: number; array_splist: SplistItem[]; source_id?: number; filters?: TargetFilters }): Observable<{ data: OccRow[]; summary: OccSummary | null }> {
     const url = `${this.baseUrl}/mdf/getOccOnMap`;
 
     return this.http.post<{ data?: OccRowRaw[] } | any>(url, payload, {
@@ -62,7 +70,12 @@ export class OccService {
           })
           .filter((x): x is OccRow => !!x);
 
-        return { data };
+        const s = res?.summary;
+        const summary: OccSummary | null = s
+          ? { species: Number(s.species) || 0, occurrences: Number(s.occurrences) || 0, cells: Number(s.cells) || 0 }
+          : null;
+
+        return { data, summary };
       }),
       catchError((err) => {
         // Log útil en desarrollo

@@ -87,6 +87,9 @@ export class NicheAnalysisStateService {
   mapQuery?: MapQuery;
   runStamp = 0;
   occValues: OccRow[] = [];
+  /** Resumen del último mapa de Target (null si no hay o es una colección propia
+   *  sin conteo de registros). */
+  occSummary: { species: number | null; occurrences: number | null; cells: number } | null = null;
   isAnalyzingOcc = false;
 
   /** Se pone en true cuando onVisualize() (Target) termina con éxito.
