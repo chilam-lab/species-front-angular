@@ -200,7 +200,6 @@ export class TargetStepComponent implements OnInit {
     });
   }
 
-  readonly minYear = 1500;
   readonly maxYear = new Date().getFullYear();
 
   get canAdvance(): boolean {

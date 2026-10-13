@@ -26,12 +26,13 @@
   }
 
   .filter-label { font-weight: 600; font-size: 0.9rem; }
+  .filter-sub { font-size: 0.8rem; color: #777; }
 
   .year-inputs {
     display: flex;
     gap: 8px;
 
-    input { width: 90px; padding: 4px 6px; }
+    input { width: 120px; padding: 4px 6px; }
   }
 
   .filter-hint {

@@ -62,8 +62,8 @@ export class NicheAnalysisStateService {
     const errs: string[] = [];
     const { fecha_inicio: ini, fecha_fin: fin } = this.targetFilters;
     const maxYear = new Date().getFullYear();
-    const bad = (y: number | null) => y !== null && (!Number.isInteger(y) || y < 1500 || y > maxYear);
-    if (bad(ini) || bad(fin)) errs.push(`Los años del filtro de fecha deben estar entre 1500 y ${maxYear}.`);
+    const bad = (y: number | null) => y !== null && (!Number.isInteger(y) || y < 1 || y > maxYear);
+    if (bad(ini) || bad(fin)) errs.push(`El filtro de fecha solo acepta años completos (ej. 1990), hasta ${maxYear}.`);
     if (ini !== null && fin !== null && ini > fin) errs.push('El año de inicio no puede ser mayor que el de fin.');
     return errs;
   }

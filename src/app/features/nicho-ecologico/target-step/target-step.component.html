@@ -49,12 +49,13 @@
         <h3>Filtros de registros (Target)</h3>
         <div class="filter-row">
           <div class="filter-block">
-            <span class="filter-label">Filtrar por fecha ({{ minYear }}–{{ maxYear }})</span>
+            <span class="filter-label">Filtrar por año de colecta</span>
+            <span class="filter-sub">Solo el año (AAAA), no día ni mes. Ej. 1990 a {{ maxYear }}.</span>
             <div class="year-inputs">
-              <input type="number" [min]="minYear" [max]="maxYear" step="1" placeholder="Inicio"
+              <input type="number" min="1" [max]="maxYear" step="1" placeholder="Desde (AAAA)"
                      [(ngModel)]="state.targetFilters.fecha_inicio" (ngModelChange)="state.onTargetFiltersChange()"
                      name="fechaInicio" aria-label="Año de inicio">
-              <input type="number" [min]="minYear" [max]="maxYear" step="1" placeholder="Fin"
+              <input type="number" min="1" [max]="maxYear" step="1" placeholder="Hasta (AAAA)"
                      [(ngModel)]="state.targetFilters.fecha_fin" (ngModelChange)="state.onTargetFiltersChange()"
                      name="fechaFin" aria-label="Año de fin">
             </div>
