@@ -23,10 +23,16 @@
     <tbody>
       <tr *ngFor="let row of rows">
         <td class="nowrap">{{ row.fecha_creacion | date:'short' }}</td>
-        <td>{{ contextSummary(row) }}</td>
+        <td>
+          <div *ngFor="let line of contextLines(row)">{{ line }}</div>
+        </td>
         <td class="wrap">{{ targetSummary(row) }}</td>
-        <td class="wrap">{{ covarsSummary(row) }}</td>
-        <td class="wrap">{{ optionsSummary(row) }}</td>
+        <td class="wrap">
+          <div class="line" *ngFor="let line of covarsLines(row)">{{ line }}</div>
+        </td>
+        <td class="wrap">
+          <div class="line" *ngFor="let line of optionsLines(row)">{{ line }}</div>
+        </td>
         <td class="col-actions">
           <div class="actions-inner">
             <button type="button" (click)="rerun(row)">Re-ejecutar</button>

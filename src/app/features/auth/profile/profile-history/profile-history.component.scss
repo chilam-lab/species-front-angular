@@ -38,6 +38,8 @@
       white-space: normal;
       overflow-wrap: anywhere;
       min-width: 140px;
+
+      .line + .line { margin-top: 0.25rem; }
     }
 
     td.nowrap {
@@ -59,10 +61,12 @@
     white-space: nowrap;
   }
 
+  // Botones uno sobre otro para que la columna sea angosta.
   .actions-inner {
     display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: stretch;
 
     button {
       padding: 0.35rem 0.7rem;

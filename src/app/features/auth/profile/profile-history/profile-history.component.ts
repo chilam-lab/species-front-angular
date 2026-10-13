@@ -47,11 +47,11 @@ export class ProfileHistoryComponent implements OnInit {
   /** Fuente / región / resolución legibles, capturadas al momento de ejecutar
    *  (columna meta). Filas guardadas antes de que existiera meta muestran '—'
    *  en región/resolución, pero igual resuelven la fuente desde el payload. */
-  contextSummary(row: AnalysisHistoryRow): string {
+  contextLines(row: AnalysisHistoryRow): string[] {
     const fuente = row.meta?.targetSourceLabel ?? this.fallbackTargetLabel(row);
     const region = row.meta?.region ?? '—';
     const resolucion = row.meta?.resolution ?? '—';
-    return `${fuente} · ${region} · ${resolucion}`;
+    return [fuente, region, resolucion];
   }
 
   private fallbackTargetLabel(row: AnalysisHistoryRow): string {
@@ -60,36 +60,34 @@ export class ProfileHistoryComponent implements OnInit {
   }
 
   /** Qué taxón/grupo se seleccionó como target, ej. "clase = Mammalia"
-   *  (la fuente ya se muestra en contextSummary, no se repite aquí). */
+   *  (la fuente ya se muestra en contextLines, no se repite aquí). */
   targetSummary(row: AnalysisHistoryRow): string {
     return row.payload?.target?.[0]?.q || 'Sin selección';
   }
 
-  covarsSummary(row: AnalysisHistoryRow): string {
+  /** Una línea por covariable. */
+  covarsLines(row: AnalysisHistoryRow): string[] {
     if (row.meta?.covars?.length) {
-      return row.meta.covars.map((c) => `${c.source}: ${c.values}`).join(' · ');
+      return row.meta.covars.map((c) => `${c.source}: ${c.values}`);
     }
     const covars = row.payload?.covars ?? [];
-    if (covars.length === 0) return '—';
-    return covars
-      .map((c) => {
-        const label = SOURCE_LABELS[c.id_source] ?? `Fuente #${c.id_source}`;
-        return c.q ? `${label}: ${c.q}` : label;
-      })
-      .join(' · ');
+    if (covars.length === 0) return ['—'];
+    return covars.map((c) => {
+      const label = SOURCE_LABELS[c.id_source] ?? `Fuente #${c.id_source}`;
+      return c.q ? `${label}: ${c.q}` : label;
+    });
   }
 
   /** Opciones del análisis guardadas en el payload (min_nj, a priori, mapa de
    *  probabilidad). Análisis anteriores a esas opciones no las traen. */
-  optionsSummary(row: AnalysisHistoryRow): string {
+  optionsLines(row: AnalysisHistoryRow): string[] {
     const p = row.payload;
-    if (!p || (p.min_nj === undefined && p.apriori === undefined && p.mapa_prob === undefined)) return '—';
-    const parts = [
+    if (!p || (p.min_nj === undefined && p.apriori === undefined && p.mapa_prob === undefined)) return ['—'];
+    return [
       (p.min_nj ?? 0) > 0 ? `nj mínimo: ${p.min_nj}` : 'Sin mínimo de nj',
       `A priori: ${p.apriori ? 'sí' : 'no'}`,
       `Probabilidad: ${p.mapa_prob ? 'sí' : 'no'}`,
     ];
-    return parts.join(' · ');
   }
 
   /** Manda al wizard de nicho-ecológico directo a Resultados con la config
