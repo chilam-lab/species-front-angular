@@ -92,6 +92,15 @@ export class ResultadosStepComponent {
     return [...taxonSummaries, ...tercerosSummaries];
   }
 
+  get analysisOptionsSummary(): string {
+    const parts = [
+      this.state.minNjEnabled ? `nj mínimo: ${this.state.minNj}` : 'Sin mínimo de nj',
+      `A priori: ${this.state.apriori ? 'sí' : 'no'}`,
+      `Mapa de probabilidad: ${this.state.mapaProb ? 'sí' : 'no'}`,
+    ];
+    return parts.join(' · ');
+  }
+
   get canRunAnalysis(): boolean {
     return this.state.canRunAnalysis();
   }

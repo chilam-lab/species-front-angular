@@ -26,6 +26,7 @@ export const targetMapGeneratedGuard: CanActivateFn = () => {
   if (pending) {
     state.preloadedPayload = pending.payload;
     state.preloadedMeta = pending.meta;
+    state.loadAnalysisOptions(pending.payload);
     state.preloadedTargetEdited = false;
     state.preloadedCovarsEdited = false;
     state.gridId = pending.payload.grid_id;

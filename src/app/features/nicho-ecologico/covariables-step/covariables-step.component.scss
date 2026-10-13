@@ -1,1 +1,30 @@
 /* Estilos compartidos en src/styles.scss (.card, .covars-grid, .actions, .btn-primary). */
+
+.analysis-options {
+  h3 { margin-top: 0; }
+
+  .option-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+  }
+
+  .nj-input {
+    width: 90px;
+    padding: 4px 6px;
+  }
+
+  .option-hint {
+    font-size: 0.8rem;
+    color: #777;
+    margin: 2px 0 10px 26px;
+  }
+}

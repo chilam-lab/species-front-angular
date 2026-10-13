@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { TaxonSelectorComponent } from 'taxon-selector';
@@ -12,7 +13,7 @@ import { SOURCE_LABELS, TaxonSelectionPayload } from '../state/nicho-analysis.mo
 @Component({
   selector: 'app-covariables-step',
   standalone: true,
-  imports: [CommonModule, TaxonSelectorComponent, TaxonNavigatorComponent, TaxonScopeComponent],
+  imports: [CommonModule, FormsModule, TaxonSelectorComponent, TaxonNavigatorComponent, TaxonScopeComponent],
   templateUrl: './covariables-step.component.html',
   styleUrls: ['./covariables-step.component.scss']
 })

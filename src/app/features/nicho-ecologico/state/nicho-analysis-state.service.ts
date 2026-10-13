@@ -91,6 +91,33 @@ export class NicheAnalysisStateService {
   covarNavigatorState: TaxonNavigatorSnapshot | null = null;
   isAnalyzingNiche = false;
 
+  /** Opciones del análisis, en la sección Covariables. */
+  minNjEnabled = false;
+  minNj = 5;
+  apriori = false;
+  mapaProb = false;
+
+  /** Payload con las opciones vigentes del análisis (también en un
+   *  "Re-ejecutar": el guard las carga del análisis guardado y el usuario
+   *  puede cambiarlas sin rehacer target/covariables). */
+  private withAnalysisOptions(payload: EpsScrPayload): EpsScrPayload {
+    const minNj = Math.max(0, Math.floor(Number(this.minNj) || 0));
+    return {
+      ...payload,
+      min_nj: this.minNjEnabled ? minNj : 0,
+      apriori: this.apriori,
+      mapa_prob: this.mapaProb,
+    };
+  }
+
+  /** Carga las opciones de un payload guardado (Re-ejecutar). */
+  loadAnalysisOptions(payload: EpsScrPayload): void {
+    this.minNjEnabled = (payload.min_nj ?? 0) > 0;
+    this.minNj = this.minNjEnabled ? payload.min_nj! : 5;
+    this.apriori = payload.apriori === true;
+    this.mapaProb = payload.mapa_prob === true;
+  }
+
   // ===== Resultados =====
   tableRows: any[] = [];
   scoreDeciles: { decil: number; avg_score_cell: number; cell_count: number }[] = [];
@@ -238,7 +265,7 @@ export class NicheAnalysisStateService {
     const pre = this.preloadedPayload;
     if (pre && !this.preloadedTargetEdited && !this.preloadedCovarsEdited) {
       this.clearValidation();
-      return pre;
+      return this.withAnalysisOptions(pre);
     }
 
     const usePreTarget = this.usingPreloadedTarget;
@@ -260,7 +287,7 @@ export class NicheAnalysisStateService {
     }
 
     this.clearValidation();
-    return { grid_id: gridId, min_occ: pre?.min_occ ?? 5, target, covars };
+    return this.withAnalysisOptions({ grid_id: gridId, min_occ: pre?.min_occ ?? 5, target, covars });
   }
 
   private buildTerceroRelationQuery(tercero: TerceroSelection): RelationQuery {

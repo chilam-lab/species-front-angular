@@ -36,6 +36,11 @@ export type EpsScrPayload = {
   min_occ: number;
   target: RelationQuery[];
   covars: RelationQuery[];
+  /** Opciones del análisis (sección Covariables). Ausentes en análisis
+   *  guardados antes de que existieran = sin filtro / sin a priori. */
+  min_nj?: number;      // covariables en menos de min_nj celdas se descartan (0 = sin filtro)
+  apriori?: boolean;    // score por celda + ln(ni/(n-ni))
+  mapa_prob?: boolean;  // mapa de probabilidad (logística del score con a priori)
 };
 
 export type EpsScrRelationResponse = { uuid: string };
