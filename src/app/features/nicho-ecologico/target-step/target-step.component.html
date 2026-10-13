@@ -44,6 +44,34 @@
                            (selectionChange)="onNavigatorSelectionChange($event)"></taxon-navigator>
         </section>
       </taxon-scope>
+
+      <section class="card target-filters" style="margin:12px 0 0 0;" *ngIf="!state.targetTercero">
+        <h3>Filtros de registros (Target)</h3>
+        <div class="filter-row">
+          <div class="filter-block">
+            <span class="filter-label">Filtrar por fecha ({{ minYear }}–{{ maxYear }})</span>
+            <div class="year-inputs">
+              <input type="number" [min]="minYear" [max]="maxYear" step="1" placeholder="Inicio"
+                     [(ngModel)]="state.targetFilters.fecha_inicio" (ngModelChange)="state.onTargetFiltersChange()"
+                     name="fechaInicio" aria-label="Año de inicio">
+              <input type="number" [min]="minYear" [max]="maxYear" step="1" placeholder="Fin"
+                     [(ngModel)]="state.targetFilters.fecha_fin" (ngModelChange)="state.onTargetFiltersChange()"
+                     name="fechaFin" aria-label="Año de fin">
+            </div>
+          </div>
+          <label class="filter-block check">
+            <input type="checkbox" [(ngModel)]="state.targetFilters.sin_fecha"
+                   (ngModelChange)="state.onTargetFiltersChange()" name="sinFecha">
+            Incluir registros sin fecha
+          </label>
+          <label class="filter-block check">
+            <input type="checkbox" [(ngModel)]="state.targetFilters.fosil"
+                   (ngModelChange)="state.onTargetFiltersChange()" name="fosil">
+            Incluir fósiles
+          </label>
+        </div>
+        <p class="filter-hint">Solo aplican al target. Si los cambias, vuelve a generar el mapa.</p>
+      </section>
     </div>
 
     <div class="right-pane">

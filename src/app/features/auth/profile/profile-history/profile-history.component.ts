@@ -5,6 +5,7 @@ import { AnalysisHistoryService } from '../../../../core/analysis-history/analys
 import { AnalysisHistoryRow } from '../../../../core/analysis-history/analysis-history.models';
 import { PendingRerunService } from '../../../../core/nicho-rerun/pending-rerun.service';
 import { SOURCE_LABELS } from '../../../nicho-ecologico/state/nicho-analysis.models';
+import { describeTargetFilters } from '../../../nicho-ecologico/resultados-step/resultados-step.component';
 
 @Component({
   selector: 'app-profile-history',
@@ -82,8 +83,9 @@ export class ProfileHistoryComponent implements OnInit {
    *  probabilidad). Análisis anteriores a esas opciones no las traen. */
   optionsLines(row: AnalysisHistoryRow): string[] {
     const p = row.payload;
-    if (!p || (p.min_nj === undefined && p.apriori === undefined && p.mapa_prob === undefined)) return ['—'];
+    if (!p || (p.min_nj === undefined && p.apriori === undefined && p.mapa_prob === undefined && !p.target_filters)) return ['—'];
     return [
+      ...(p.target_filters ? [`Target: ${describeTargetFilters(p.target_filters)}`] : []),
       (p.min_nj ?? 0) > 0 ? `nj mínimo: ${p.min_nj}` : 'Sin mínimo de nj',
       `A priori: ${p.apriori ? 'sí' : 'no'}`,
       `Probabilidad: ${p.mapa_prob ? 'sí' : 'no'}`,

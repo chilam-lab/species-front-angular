@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
+import type { TargetFilters } from '../features/nicho-ecologico/state/nicho-analysis.models';
 
 
 export interface SplistItem {
@@ -40,7 +41,7 @@ export class OccService {
    * Obtiene ocurrencias agregadas para el mapa.
    * SIEMPRE normaliza a { cell_id: number, occ: number } para evitar problemas de tipado/ids.
    */
-  getOccOnMap(payload: { grid_id: number; array_splist: SplistItem[]; source_id?: number }): Observable<{ data: OccRow[] }> {
+  getOccOnMap(payload: { grid_id: number; array_splist: SplistItem[]; source_id?: number; filters?: TargetFilters }): Observable<{ data: OccRow[] }> {
     const url = `${this.baseUrl}/mdf/getOccOnMap`;
 
     return this.http.post<{ data?: OccRowRaw[] } | any>(url, payload, {

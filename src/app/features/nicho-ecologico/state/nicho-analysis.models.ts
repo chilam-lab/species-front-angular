@@ -31,6 +31,19 @@ export type RelationQuery = {
 /** Una colección propia ("Mis datos") elegida como target o covariable. */
 export type TerceroSelection = { id_data: number; nombre_datos: string };
 
+/** Filtros de ocurrencias del target (sección Target). Por defecto no
+ *  filtran nada: sin rango de años, incluye registros sin fecha y fósiles. */
+export type TargetFilters = {
+  fecha_inicio: number | null;
+  fecha_fin: number | null;
+  sin_fecha: boolean;   // incluir registros sin fecha
+  fosil: boolean;       // incluir fósiles
+};
+
+export const DEFAULT_TARGET_FILTERS: TargetFilters = {
+  fecha_inicio: null, fecha_fin: null, sin_fecha: true, fosil: true,
+};
+
 export type EpsScrPayload = {
   grid_id: number;
   min_occ: number;
@@ -41,6 +54,8 @@ export type EpsScrPayload = {
   min_nj?: number;      // covariables en menos de min_nj celdas se descartan (0 = sin filtro)
   apriori?: boolean;    // score por celda + ln(ni/(n-ni))
   mapa_prob?: boolean;  // mapa de probabilidad (logística del score con a priori)
+  /** Filtros del target; ausentes = sin filtro. */
+  target_filters?: TargetFilters;
 };
 
 export type EpsScrRelationResponse = { uuid: string };

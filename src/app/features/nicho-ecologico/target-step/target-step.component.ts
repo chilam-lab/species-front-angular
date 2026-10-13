@@ -140,7 +140,10 @@ export class TargetStepComponent implements OnInit {
 
   onVisualize(): void {
     const array_splist = this.state.buildSplistFrom(this.state.taxonSel);
-    const missing = this.state.collectValidation(this.state.gridId, array_splist);
+    const missing = [
+      ...this.state.collectValidation(this.state.gridId, array_splist),
+      ...(this.state.targetTercero ? [] : this.state.targetFiltersErrors()),
+    ];
     if (missing.length > 0) {
       this.state.showValidationMessages(missing);
       return;
@@ -181,12 +184,20 @@ export class TargetStepComponent implements OnInit {
       return;
     }
 
-    const payload = { grid_id: this.state.gridId, array_splist, source_id: this.state.taxonSel.source_id ?? 1 };
+    const payload = {
+      grid_id: this.state.gridId,
+      array_splist,
+      source_id: this.state.taxonSel.source_id ?? 1,
+      filters: this.state.activeTargetFilters,
+    };
     this.occService.getOccOnMap(payload).subscribe({
       next: ({ data }) => onSuccess(data),
       error: onError,
     });
   }
+
+  readonly minYear = 1500;
+  readonly maxYear = new Date().getFullYear();
 
   get canAdvance(): boolean {
     if (this.state.targetTercero) return this.state.targetMapGenerated;

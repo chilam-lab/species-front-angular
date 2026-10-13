@@ -1,3 +1,42 @@
 /* Estilos específicos del paso Target — la mayoría de las clases (.card, .map-card,
    .map-wrap, .actions, .btn-primary, .alert-warning) vienen de src/styles.scss,
    compartidas con Covariables y Resultados. */
+
+.target-filters {
+  h3 { margin-top: 0; }
+
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 28px;
+    align-items: flex-end;
+  }
+
+  .filter-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    &.check {
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+  }
+
+  .filter-label { font-weight: 600; font-size: 0.9rem; }
+
+  .year-inputs {
+    display: flex;
+    gap: 8px;
+
+    input { width: 90px; padding: 4px 6px; }
+  }
+
+  .filter-hint {
+    font-size: 0.8rem;
+    color: #777;
+    margin: 10px 0 0;
+  }
+}

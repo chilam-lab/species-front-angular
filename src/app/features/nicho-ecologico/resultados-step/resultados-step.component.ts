@@ -8,7 +8,7 @@ import { TablaSpeciesComponent } from 'tabla-species';
 import { HistogramChartComponent } from 'histogram-chart';
 
 import { NicheAnalysisStateService } from '../state/nicho-analysis-state.service';
-import { SOURCE_LABELS } from '../state/nicho-analysis.models';
+import { SOURCE_LABELS, TargetFilters } from '../state/nicho-analysis.models';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
@@ -92,6 +92,14 @@ export class ResultadosStepComponent {
     return [...taxonSummaries, ...tercerosSummaries];
   }
 
+  get targetFiltersSummary(): string {
+    if (this.state.targetTercero) return 'No aplica (colección propia)';
+    const f = this.state.usingPreloadedTarget
+      ? this.state.preloadedPayload!.target_filters
+      : this.state.targetFilters;
+    return describeTargetFilters(f);
+  }
+
   get analysisOptionsSummary(): string {
     const parts = [
       this.state.minNjEnabled ? `nj mínimo: ${this.state.minNj}` : 'Sin mínimo de nj',
@@ -157,4 +165,15 @@ export class ResultadosStepComponent {
       .sort((a, b) => b.decil - a.decil)
       .map(d => ({ label: d.decil.toString(), value: +d.avg_score_cell.toFixed(2) }));
   }
+}
+
+/** Texto legible de los filtros del target (también lo usa el historial). */
+export function describeTargetFilters(f: TargetFilters | undefined | null): string {
+  if (!f) return 'Sin filtros';
+  const ini = f.fecha_inicio, fin = f.fecha_fin;
+  const fechas = ini !== null && fin !== null ? `Años ${ini}–${fin}`
+    : ini !== null ? `Desde ${ini}`
+    : fin !== null ? `Hasta ${fin}`
+    : 'Cualquier año';
+  return [fechas, `Sin fecha: ${f.sin_fecha ? 'sí' : 'no'}`, `Fósiles: ${f.fosil ? 'sí' : 'no'}`].join(' · ');
 }

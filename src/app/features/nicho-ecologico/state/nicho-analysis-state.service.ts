@@ -8,7 +8,9 @@ import {
   RelationQuery,
   SplistItem,
   TaxonSelectionPayload,
-  TerceroSelection
+  TerceroSelection,
+  TargetFilters,
+  DEFAULT_TARGET_FILTERS,
 } from './nicho-analysis.models';
 import { environment } from '../../../../environments/environment';
 import type { TaxonSelectorSnapshot } from 'taxon-selector';
@@ -44,6 +46,37 @@ export class NicheAnalysisStateService {
   /** Si está presente, el target es una colección propia en vez de un taxón
    *  catalogado — mutuamente excluyente con taxonSel en la UI de Target. */
   targetTercero: TerceroSelection | null = null;
+
+  /** Filtros de ocurrencias del target (fecha, sin fecha, fósiles). Al
+   *  cambiarlos hay que regenerar el mapa de Target (ver onTargetFiltersChange). */
+  targetFilters: TargetFilters = { ...DEFAULT_TARGET_FILTERS };
+
+  /** Filtros a mandar al backend; undefined con una colección propia como
+   *  target (sus datos no traen fecha/fósil). */
+  get activeTargetFilters(): TargetFilters | undefined {
+    return this.targetTercero ? undefined : { ...this.targetFilters };
+  }
+
+  /** Errores de captura de los filtros del target (vacío = válidos). */
+  targetFiltersErrors(): string[] {
+    const errs: string[] = [];
+    const { fecha_inicio: ini, fecha_fin: fin } = this.targetFilters;
+    const maxYear = new Date().getFullYear();
+    const bad = (y: number | null) => y !== null && (!Number.isInteger(y) || y < 1500 || y > maxYear);
+    if (bad(ini) || bad(fin)) errs.push(`Los años del filtro de fecha deben estar entre 1500 y ${maxYear}.`);
+    if (ini !== null && fin !== null && ini > fin) errs.push('El año de inicio no puede ser mayor que el de fin.');
+    return errs;
+  }
+
+  onTargetFiltersChange(): void {
+    // input type=number vacío llega como null o '' según el navegador.
+    for (const k of ['fecha_inicio', 'fecha_fin'] as const) {
+      const v: any = this.targetFilters[k];
+      this.targetFilters[k] = (v === '' || v === undefined || v === null) ? null : Number(v);
+    }
+    this.targetMapGenerated = false;
+    this.clearValidation();
+  }
 
   /** Estado visual de taxon-selector/taxon-navigator de cada paso. Esos
    *  componentes se destruyen al cambiar de paso; con esto se restauran tal
@@ -112,6 +145,7 @@ export class NicheAnalysisStateService {
 
   /** Carga las opciones de un payload guardado (Re-ejecutar). */
   loadAnalysisOptions(payload: EpsScrPayload): void {
+    this.targetFilters = { ...DEFAULT_TARGET_FILTERS, ...(payload.target_filters ?? {}) };
     this.minNjEnabled = (payload.min_nj ?? 0) > 0;
     this.minNj = this.minNjEnabled ? payload.min_nj! : 5;
     this.apriori = payload.apriori === true;
@@ -287,7 +321,8 @@ export class NicheAnalysisStateService {
     }
 
     this.clearValidation();
-    return this.withAnalysisOptions({ grid_id: gridId, min_occ: pre?.min_occ ?? 5, target, covars });
+    const target_filters = usePreTarget ? pre!.target_filters : this.activeTargetFilters;
+    return this.withAnalysisOptions({ grid_id: gridId, min_occ: pre?.min_occ ?? 5, target, covars, target_filters });
   }
 
   private buildTerceroRelationQuery(tercero: TerceroSelection): RelationQuery {
