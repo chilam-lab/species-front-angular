@@ -1,7 +1,22 @@
 <header class="app-header">
-  <button class="hamburger" (click)="onToggleClick()">☰</button>
-  <div>
+  <button class="hamburger" (click)="onToggleClick()" aria-label="Mostrar u ocultar menú">☰</button>
+  <div class="titles">
     <h1>{{ title }}</h1>
     <h2>{{ subtitle }}</h2>
   </div>
+
+  <!-- Cuenta: nombre si hay sesión; si no, accesos a iniciar sesión / registrarse. -->
+  <div class="account" *ngIf="(currentUser$ | async) as user; else guest">
+    <a routerLink="/perfil" class="account-link" [title]="user.email">
+      <span class="material-icons" aria-hidden="true">account_circle</span>
+      <span class="account-name">{{ user.name }}</span>
+    </a>
+  </div>
+  <ng-template #guest>
+    <div class="account guest">
+      <span class="guest-hint">Sin sesión</span>
+      <a routerLink="/login" class="btn-link">Iniciar sesión</a>
+      <a routerLink="/register" class="btn-link primary">Registrarse</a>
+    </div>
+  </ng-template>
 </header>

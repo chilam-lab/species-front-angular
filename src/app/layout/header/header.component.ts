@@ -1,5 +1,7 @@
 import { Component, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Router, NavigationEnd, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth/auth.service';
 import { Subscription, filter } from 'rxjs';
 
 /** El título/subtítulo antes eran texto fijo ("Nicho Ecológico...") aunque este
@@ -18,7 +20,8 @@ const DEFAULT_SECTION = { title: 'Nicho Ecológico', subtitle: 'Plataforma de ex
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
-  standalone: true
+  standalone: true,
+  imports: [CommonModule, RouterLink]
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   @Output() toggleSidebar = new EventEmitter<void>();
@@ -28,7 +31,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private sub?: Subscription;
 
-  constructor(private router: Router) {}
+  readonly currentUser$;
+
+  constructor(private router: Router, private auth: AuthService) {
+    this.currentUser$ = this.auth.currentUser$;
+  }
 
   ngOnInit(): void {
     this.updateSection(this.router.url);

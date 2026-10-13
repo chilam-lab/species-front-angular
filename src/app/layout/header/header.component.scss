@@ -29,6 +29,57 @@
     color: rgba(255, 255, 255, 0.75); // menor intensidad
   }
 
+  .titles { min-width: 0; }
+
+  .account {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+
+    a { color: white; text-decoration: none; }
+  }
+
+  .account-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 4px;
+
+    &:hover { background: rgba(255, 255, 255, 0.12); }
+  }
+
+  .account-name {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .guest-hint { color: rgba(255, 255, 255, 0.65); }
+
+  .btn-link {
+    padding: 5px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+
+    &:hover { background: rgba(255, 255, 255, 0.12); }
+
+    &.primary {
+      background: #006c49;
+      border-color: #006c49;
+
+      &:hover { background: #005a3c; }
+    }
+  }
+
+  @media (max-width: 640px) {
+    .guest-hint, .account-name { display: none; }
+    h2 { display: none; }
+  }
+
   .hamburger {
     margin-right: 1rem;
     font-size: 1.5rem;
