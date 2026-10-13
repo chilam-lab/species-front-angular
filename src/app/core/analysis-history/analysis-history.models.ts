@@ -6,6 +6,8 @@ export interface AnalysisHistoryMeta {
   targetSourceLabel?: string;
   region?: string;
   resolution?: string;
+  /** Resumen legible de covariables (fuente + valores), como se vio en Resultados. */
+  covars?: { source: string; values: string }[];
 }
 
 export interface AnalysisHistoryRow {

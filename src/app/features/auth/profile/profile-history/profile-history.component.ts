@@ -66,6 +66,9 @@ export class ProfileHistoryComponent implements OnInit {
   }
 
   covarsSummary(row: AnalysisHistoryRow): string {
+    if (row.meta?.covars?.length) {
+      return row.meta.covars.map((c) => `${c.source}: ${c.values}`).join(' · ');
+    }
     const covars = row.payload?.covars ?? [];
     if (covars.length === 0) return '—';
     return covars

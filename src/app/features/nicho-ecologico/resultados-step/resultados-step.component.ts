@@ -65,6 +65,7 @@ export class ResultadosStepComponent {
 
   get covariablesSummary(): { source: string; values: string }[] {
     if (this.state.usingPreloadedCovars) {
+      if (this.state.preloadedMeta?.covars?.length) return this.state.preloadedMeta.covars;
       return (this.state.preloadedPayload!.covars ?? []).map(c => ({
         source: SOURCE_LABELS[c.id_source] ?? `Fuente #${c.id_source}`,
         values: c.q || 'Sin selección'
@@ -73,6 +74,8 @@ export class ResultadosStepComponent {
     const taxonSummaries = this.state.taxonSel2Sources.map(src => {
       const label = SOURCE_LABELS[src.source_id] ?? `Fuente #${src.source_id}`;
       if (src.context?.idfuente != null || src.context?.layer) {
+        const startLabel = this.state.covarStartLabel(src.source_id);
+        if (startLabel) return { source: label, values: startLabel };
         const parts = [
           src.context?.idfuente != null ? `variable ${src.context.idfuente}` : null,
           src.context?.layer ? `capa ${src.context.layer}` : null
@@ -109,11 +112,12 @@ export class ResultadosStepComponent {
       // autenticado) y meta (fuente/región/resolución legibles para el historial;
       // si venimos de un re-ejecutar, se reusa la meta original en vez de
       // reconstruirla, porque targetSourceId/regionName quedan vacíos en ese flujo).
-      const meta = (this.state.usingPreloadedTarget && this.state.preloadedMeta) || {
+      const baseMeta = (this.state.usingPreloadedTarget && this.state.preloadedMeta) || {
         targetSourceLabel: this.targetSourceLabel,
         region: this.regionDisplay,
         resolution: this.resolutionDisplay,
       };
+      const meta = { ...baseMeta, covars: this.covariablesSummary };
       const payloadConSesion = { ...payload, sessionid: this.auth.sessionIdOrNull, meta };
       // as any: mapa-maplibre reenvía esto tal cual como JSON al backend, pero su propio
       // tipo RelationQuery no conoce id_source:'terceros' (colecciones propias), que

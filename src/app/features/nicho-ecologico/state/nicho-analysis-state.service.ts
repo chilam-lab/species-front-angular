@@ -13,6 +13,7 @@ import {
 import { environment } from '../../../../environments/environment';
 import type { TaxonSelectorSnapshot } from 'taxon-selector';
 import type { TaxonNavigatorSnapshot } from 'taxon-navigator';
+import type { AnalysisHistoryMeta } from '../../../core/analysis-history/analysis-history.models';
 
 /**
  * Estado compartido del asistente de 3 pasos (Target / Covariables / Resultados).
@@ -67,7 +68,7 @@ export class NicheAnalysisStateService {
 
   /** Info legible (fuente/región/resolución) que acompaña a preloadedPayload,
    *  para que el resumen de Resultados no quede vacío en un re-ejecutar. */
-  preloadedMeta: { targetSourceLabel?: string; region?: string; resolution?: string } | null = null;
+  preloadedMeta: AnalysisHistoryMeta | null = null;
 
   /** En un "Re-ejecutar", lo cargado es solo el punto de partida: si el usuario
    *  regenera el mapa de Target o cambia las covariables, esa parte se arma con
@@ -184,6 +185,17 @@ export class NicheAnalysisStateService {
       parts.push(`${nivel} = ${uniq.join(', ')}`);
     });
     return parts.join('; ');
+  }
+
+  /** Etiqueta legible del nodo de arranque de una covariable de capas
+   *  (WorldClim/DEM), ej. "fuente: <descripción> • <área> • bins:10". La
+   *  consulta de esas fuentes solo lleva el contexto (idfuente/layer) de ese
+   *  nodo, así que es lo que de verdad entra al análisis. */
+  covarStartLabel(sourceId: number): string | null {
+    const start = this.covarNavigatorState?.states?.[sourceId]?.parentTrail?.[0];
+    const label = (start?.label ?? '').toString().trim();
+    if (!label) return null;
+    return start?.level ? `${start.level}: ${label}` : label;
   }
 
   buildRelationQuery(q: string, id_source: number): RelationQuery {

@@ -23,6 +23,7 @@ export class CovariablesStepComponent {
    *  para mostrarlas aquí (el navegador no las conoce: vienen ya armadas). */
   get preloadedCovars(): { source: string; values: string }[] {
     if (!this.state.usingPreloadedCovars) return [];
+    if (this.state.preloadedMeta?.covars?.length) return this.state.preloadedMeta.covars;
     return (this.state.preloadedPayload!.covars ?? []).map(c => ({
       source: SOURCE_LABELS[c.id_source] ?? `Fuente #${c.id_source}`,
       values: c.q || 'Sin selección'
