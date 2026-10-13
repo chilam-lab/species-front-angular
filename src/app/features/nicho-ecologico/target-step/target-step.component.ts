@@ -250,6 +250,24 @@ export class TargetStepComponent implements OnInit {
     });
   }
 
+  /** Tipo de registro legible (SNIB: HumanObservation; GBIF: HUMAN_OBSERVATION). */
+  tipoRegistro(tipo: string | null): string {
+    if (!tipo) return '—';
+    const key = tipo.replace(/_/g, '').toLowerCase();
+    const labels: Record<string, string> = {
+      humanobservation: 'Observación',
+      machineobservation: 'Observación automática',
+      preservedspecimen: 'Ejemplar preservado',
+      livingspecimen: 'Ejemplar vivo',
+      fossilspecimen: 'Fósil',
+      materialsample: 'Muestra de material',
+      materialcitation: 'Cita bibliográfica',
+      occurrence: 'Ocurrencia',
+      observation: 'Observación',
+    };
+    return labels[key] ?? tipo;
+  }
+
   closeCellPanel(): void {
     this.cellPanel = null;
   }

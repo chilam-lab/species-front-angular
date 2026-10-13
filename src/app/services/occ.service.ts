@@ -18,6 +18,10 @@ export interface CellOccRecord {
   nombre: string | null;
   anio: number | null;
   fecha: string | null;
+  fuente: string | null;
+  coleccion: string | null;
+  /** Tipo de registro: procedenciaejemplar (SNIB) o basisOfRecord (GBIF). */
+  tipo: string | null;
   url: string | null;
 }
 

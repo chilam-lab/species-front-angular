@@ -90,7 +90,7 @@
   top: 10px;
   left: 10px;
   z-index: 5;
-  width: min(380px, calc(100% - 20px));
+  width: min(560px, calc(100% - 20px));
   max-height: calc(100% - 20px);
   display: flex;
   flex-direction: column;
@@ -137,6 +137,7 @@
     }
 
     th { color: #777; font-weight: 600; font-size: 0.78rem; }
+    .nowrap { white-space: nowrap; }
     tbody tr:nth-child(even) { background: #fafafa; }
   }
 

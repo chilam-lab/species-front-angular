@@ -131,12 +131,14 @@
               </p>
               <table *ngIf="p.records.length">
                 <thead>
-                  <tr><th>Nombre</th><th>Año colecta</th><th>Ficha</th></tr>
+                  <tr><th>Nombre</th><th>Fecha</th><th>Fuente</th><th>Tipo</th><th>Ficha</th></tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let r of p.records">
                     <td>{{ r.nombre || '—' }}</td>
-                    <td>{{ r.anio ?? 'Sin fecha' }}</td>
+                    <td class="nowrap">{{ r.fecha || r.anio || 'Sin fecha' }}</td>
+                    <td [title]="r.coleccion || ''">{{ r.fuente || '—' }}</td>
+                    <td>{{ tipoRegistro(r.tipo) }}</td>
                     <td>
                       <a *ngIf="r.url" [href]="r.url" target="_blank" rel="noopener noreferrer">Más info</a>
                       <span *ngIf="!r.url">—</span>
