@@ -9,7 +9,7 @@ import { TaxonSelectorComponent } from 'taxon-selector';
 import { TaxonNavigatorComponent } from 'taxon-navigator';
 import { TaxonScopeComponent } from 'taxon-scope';
 
-import { OccService, OccSummary } from '../../../services/occ.service';
+import { CellOccRecord, OccService, OccSummary } from '../../../services/occ.service';
 import { MisDatosService } from '../../../core/mis-datos/mis-datos.service';
 import { PendingTerceroSelectionService } from '../../../core/nicho-rerun/pending-tercero-selection.service';
 import { NicheAnalysisStateService } from '../state/nicho-analysis-state.service';
@@ -164,6 +164,7 @@ export class TargetStepComponent implements OnInit {
       this.state.occValues = data ?? [];
       // Mapa nuevo: las celdas borradas del anterior ya no aplican.
       this.state.excludedCells = [];
+      this.cellPanel = null;
       this.state.cellDeleteMode = false;
       this.state.occSummary = summary
         ? { ...summary }
@@ -203,9 +204,54 @@ export class TargetStepComponent implements OnInit {
     });
   }
 
+  /** Panel con los registros de la celda seleccionada (como el popup de la v1). */
+  cellPanel: {
+    cellId: number;
+    loading: boolean;
+    error: string | null;
+    truncated: boolean;
+    records: CellOccRecord[];
+  } | null = null;
+
+  /** Con "Borrar celdas" activo el clic borra/devuelve; si no, muestra sus registros. */
   onCellClick(ev: { cell_id: number | string }): void {
-    if (!this.state.cellDeleteMode) return;
-    this.state.toggleExcludedCell(Number(ev.cell_id));
+    const cellId = Number(ev.cell_id);
+    if (this.state.cellDeleteMode) {
+      this.state.toggleExcludedCell(cellId);
+      return;
+    }
+    this.openCellPanel(cellId);
+  }
+
+  private openCellPanel(cellId: number): void {
+    if (!this.state.gridId) return;
+    if (this.state.targetTercero) {
+      this.cellPanel = { cellId, loading: false, truncated: false, records: [],
+        error: 'El detalle de registros no está disponible para colecciones propias.' };
+      return;
+    }
+    this.cellPanel = { cellId, loading: true, error: null, truncated: false, records: [] };
+    this.occService.getCellOccurrences({
+      grid_id: this.state.gridId,
+      cell_id: cellId,
+      array_splist: this.state.buildSplistFrom(this.state.taxonSel),
+      source_id: this.state.taxonSel.source_id ?? 1,
+      filters: this.state.activeTargetFilters,
+    }).subscribe({
+      next: (res) => {
+        if (this.cellPanel?.cellId !== cellId) return; // ya se eligió otra celda
+        this.cellPanel = { cellId, loading: false, error: null, truncated: res.truncated, records: res.data };
+      },
+      error: () => {
+        if (this.cellPanel?.cellId !== cellId) return;
+        this.cellPanel = { cellId, loading: false, truncated: false, records: [],
+          error: 'No se pudieron obtener los registros de la celda.' };
+      },
+    });
+  }
+
+  closeCellPanel(): void {
+    this.cellPanel = null;
   }
 
   /** Celdas con presencia que siguen en el análisis tras el borrado. Solo se

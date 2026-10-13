@@ -14,6 +14,19 @@ export interface OccSummary {
   cells: number;
 }
 
+export interface CellOccRecord {
+  nombre: string | null;
+  anio: number | null;
+  fecha: string | null;
+  url: string | null;
+}
+
+export interface CellOccResponse {
+  cell_id: number;
+  truncated: boolean;
+  data: CellOccRecord[];
+}
+
 export interface SplistItem {
   nivel: string;
   valor: string;
@@ -86,6 +99,21 @@ export class OccService {
         console.error('[OccService] getOccOnMap error:', err);
         return throwError(() => err);
       })
+    );
+  }
+
+  /** Registros del target dentro de una celda (popup del mapa de Target). */
+  getCellOccurrences(payload: {
+    grid_id: number; cell_id: number; array_splist: SplistItem[]; source_id?: number; filters?: TargetFilters;
+  }): Observable<CellOccResponse> {
+    return this.http.post<CellOccResponse>(`${this.baseUrl}/mdf/getCellOccurrences`, payload, {
+      headers: { 'Content-Type': 'application/json' },
+    }).pipe(
+      map((res) => ({
+        cell_id: Number(res?.cell_id),
+        truncated: !!res?.truncated,
+        data: Array.isArray(res?.data) ? res.data : [],
+      }))
     );
   }
 }

@@ -101,6 +101,7 @@
           <span class="tool-hint" *ngIf="state.cellDeleteMode">
             Haz clic en una celda para quitarla del análisis (se pinta en gris); otro clic la devuelve.
           </span>
+          <span class="tool-hint" *ngIf="!state.cellDeleteMode">Clic en una celda para ver sus registros.</span>
         </div>
         <div class="map-wrap">
           <app-mapa-maplibre
@@ -112,10 +113,40 @@
             [controlBaseLayer]="true"
             [controlScoreLayer]="false"
             [loading]="state.isAnalyzingOcc"
-            [cellSelectMode]="state.cellDeleteMode"
+            [cellSelectMode]="state.occValues.length > 0"
             [excludedCells]="state.excludedCells"
             (cellClick)="onCellClick($event)">
           </app-mapa-maplibre>
+
+          <aside class="cell-panel" *ngIf="cellPanel as p" role="dialog" [attr.aria-label]="'Celda ' + p.cellId">
+            <header>
+              <h4>Celda {{ p.cellId }}</h4>
+              <button type="button" class="close" (click)="closeCellPanel()" aria-label="Cerrar">×</button>
+            </header>
+            <div class="body">
+              <p *ngIf="p.loading" class="muted">Cargando registros…</p>
+              <p *ngIf="p.error" class="muted">{{ p.error }}</p>
+              <p *ngIf="!p.loading && !p.error && p.records.length === 0" class="muted">
+                Sin registros con los filtros actuales.
+              </p>
+              <table *ngIf="p.records.length">
+                <thead>
+                  <tr><th>Nombre</th><th>Año colecta</th><th>Ficha</th></tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let r of p.records">
+                    <td>{{ r.nombre || '—' }}</td>
+                    <td>{{ r.anio ?? 'Sin fecha' }}</td>
+                    <td>
+                      <a *ngIf="r.url" [href]="r.url" target="_blank" rel="noopener noreferrer">Más info</a>
+                      <span *ngIf="!r.url">—</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <p *ngIf="p.truncated" class="muted">Se muestran los primeros {{ p.records.length }} registros.</p>
+            </div>
+          </aside>
         </div>
       </section>
     </div>
