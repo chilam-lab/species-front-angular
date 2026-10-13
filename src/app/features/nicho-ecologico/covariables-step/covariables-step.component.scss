@@ -1,6 +1,9 @@
 /* Estilos compartidos en src/styles.scss (.card, .covars-grid, .actions, .btn-primary). */
 
 .analysis-options {
+  position: sticky;
+  top: 16px;
+
   h3 { margin-top: 0; }
 
   .option-row {
