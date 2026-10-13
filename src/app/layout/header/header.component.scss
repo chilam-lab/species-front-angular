@@ -5,6 +5,8 @@
   left: 0;
   height: 60px;
   width: 100%;
+  // Sin esto el padding se suma al 100% y el lado derecho (cuenta) se corta.
+  box-sizing: border-box;
   background-color: #333;
   color: white;
   display: flex;
