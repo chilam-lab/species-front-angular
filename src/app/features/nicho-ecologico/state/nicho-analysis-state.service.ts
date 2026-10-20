@@ -149,8 +149,9 @@ export class NicheAnalysisStateService {
   covarNavigatorState: TaxonNavigatorSnapshot | null = null;
   isAnalyzingNiche = false;
 
-  /** Opciones del análisis, en la sección Covariables. */
-  minNjEnabled = false;
+  /** Opciones del análisis, en la sección Covariables. El mínimo de nj viene
+   *  activado en 5, como el min_occ de la versión estable. */
+  minNjEnabled = true;
   minNj = 5;
   apriori = false;
   mapaProb = false;
