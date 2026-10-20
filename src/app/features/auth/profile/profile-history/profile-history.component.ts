@@ -90,6 +90,7 @@ export class ProfileHistoryComponent implements OnInit {
       (p.min_nj ?? 0) > 0 ? `nj mínimo: ${p.min_nj}` : 'Sin mínimo de nj',
       `A priori: ${p.apriori ? 'sí' : 'no'}`,
       `Probabilidad: ${p.mapa_prob ? 'sí' : 'no'}`,
+      ...((p.validation_iterations ?? 0) >= 2 ? [`Validación: ${p.validation_iterations} iteraciones`] : []),
     ];
   }
 

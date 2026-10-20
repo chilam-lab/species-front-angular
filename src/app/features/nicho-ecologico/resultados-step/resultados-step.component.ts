@@ -107,6 +107,7 @@ export class ResultadosStepComponent {
       this.state.minNjEnabled ? `nj mínimo: ${this.state.minNj}` : 'Sin mínimo de nj',
       `A priori: ${this.state.apriori ? 'sí' : 'no'}`,
       `Mapa de probabilidad: ${this.state.mapaProb ? 'sí' : 'no'}`,
+      this.state.validationEnabled ? `Validación: ${this.state.validationIterations} iteraciones` : 'Sin validación',
     ];
     return parts.join(' · ');
   }
@@ -211,6 +212,38 @@ export class ResultadosStepComponent {
       .slice()
       .sort((a, b) => b.decil - a.decil)
       .map(d => ({ label: d.decil.toString(), value: +d.avg_score_cell.toFixed(2) }));
+    this.loadValidation();
+  }
+
+  /** La validación se calcula junto con el análisis y queda en Redis con el
+   *  mismo uuid; se pide solo si el análisis la incluyó. */
+  private loadValidation(): void {
+    this.state.validationResult = null;
+    this.state.validationError = null;
+    const uuid = this.state.uuidNiche;
+    const iterations = this.state.validationEnabled ? this.state.validationIterations : 0;
+    if (!uuid || iterations < 2) return;
+    this.state.validationLoading = true;
+    this.state.getValidation(uuid).subscribe({
+      next: (v) => {
+        this.state.validationLoading = false;
+        this.state.validationResult = v;
+        if (v?.error) this.state.validationError = v.error;
+      },
+      error: (err) => {
+        this.state.validationLoading = false;
+        this.state.validationError = typeof err?.error?.error === 'string'
+          ? err.error.error
+          : 'No se pudo obtener la validación.';
+      },
+    });
+  }
+
+  /** Recall por decil (%) para la gráfica, del decil 10 al 1. */
+  get recallChartData(): { label: string; value: number }[] {
+    return (this.state.validationResult?.deciles ?? [])
+      .filter((d) => d.recall !== null)
+      .map((d) => ({ label: String(d.decil), value: +(d.recall! * 100).toFixed(1) }));
   }
 }
 

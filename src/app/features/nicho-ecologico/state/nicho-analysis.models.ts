@@ -54,6 +54,7 @@ export type EpsScrPayload = {
   min_nj?: number;      // covariables en menos de min_nj celdas se descartan (0 = sin filtro)
   apriori?: boolean;    // score por celda + ln(ni/(n-ni))
   mapa_prob?: boolean;  // mapa de probabilidad (logística del score con a priori)
+  validation_iterations?: number; // validación cruzada k-fold (0/ausente = sin validación)
   /** Filtros del target; ausentes = sin filtro. */
   target_filters?: TargetFilters;
   /** Celdas del target que el usuario borró en el mapa: se quitan de la región
@@ -99,5 +100,21 @@ export type CellScoreDetail = {
     nij: number;
     nj: number;
     aporte: number;
+  }[];
+};
+
+/** Validación cruzada del análisis (getEpsScrValidation). */
+export type ValidationResult = {
+  iterations: number;
+  target_cells?: number;
+  error?: string;
+  deciles?: {
+    decil: number;
+    recall: number | null;
+    recall_min: number | null;
+    recall_max: number | null;
+    vp: number;
+    fn: number;
+    nulo: number;
   }[];
 };

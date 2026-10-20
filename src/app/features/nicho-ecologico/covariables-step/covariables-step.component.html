@@ -69,6 +69,18 @@
           </label>
         </div>
         <p class="option-hint">Muestra en el mapa la probabilidad de presencia del target (0 a 1) en lugar del score.</p>
+        <div class="option-row">
+          <label>
+            <input type="checkbox" [(ngModel)]="state.validationEnabled" name="validationEnabled">
+            Validación
+          </label>
+          <input type="number" min="2" max="10" step="1" class="nj-input"
+                 [(ngModel)]="state.validationIterations" name="validationIterations"
+                 [disabled]="!state.validationEnabled"
+                 aria-label="Número de iteraciones de la validación">
+          <span class="option-hint inline">iteraciones</span>
+        </div>
+        <p class="option-hint">Separa al azar una parte de las celdas del target en cada iteración, entrena con el resto y mide qué tan arriba quedan en el score (gráfica de recall por decil en Resultados).</p>
       </section>
     </div>
   </div>

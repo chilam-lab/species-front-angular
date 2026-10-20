@@ -144,6 +144,54 @@
     </ui-histogram-chart>
   </section>
 
+  <section class="card validation-card" *ngIf="state.validationLoading || state.validationResult || state.validationError">
+    <h3>Validación (recall por decil)</h3>
+    <p *ngIf="state.validationLoading" class="muted">Calculando validación…</p>
+    <p *ngIf="state.validationError" class="alert-warning">{{ state.validationError }}</p>
+    <ng-container *ngIf="state.validationResult as v">
+      <ng-container *ngIf="!v.error && v.deciles?.length">
+        <p class="muted">
+          {{ v.iterations }} iteraciones sobre {{ v.target_cells | number }} celdas del target. Recall del decil d =
+          porcentaje de las celdas del target apartadas en cada iteración que quedaron en el decil d o superior del
+          score (promedio de las iteraciones).
+        </p>
+        <ui-histogram-chart
+          [useCustomData]="true"
+          [customData]="recallChartData"
+          [height]="300"
+          title="Recall por decil (%)"
+          xLabel="Decil"
+          yLabel="Recall (%)">
+        </ui-histogram-chart>
+        <div class="table-wrap">
+          <table class="summary-subtable validation-table">
+            <thead>
+              <tr><th>Decil</th><th>Recall</th><th>Mín – máx</th><th>VP</th><th>FN</th><th>Nulos</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let d of v.deciles">
+                <td>{{ d.decil }}</td>
+                <td>{{ d.recall === null ? '—' : (d.recall * 100 | number:'1.1-1') + '%' }}</td>
+                <td>
+                  <ng-container *ngIf="d.recall_min !== null">
+                    {{ d.recall_min * 100 | number:'1.0-0' }}–{{ d.recall_max! * 100 | number:'1.0-0' }}%
+                  </ng-container>
+                </td>
+                <td>{{ d.vp }}</td>
+                <td>{{ d.fn }}</td>
+                <td>{{ d.nulo }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted small">
+          VP: celdas de prueba del target en el decil o superior · FN: por debajo · Nulos: sin ninguna covariable
+          (no cuentan en el recall). Conteos sumados de todas las iteraciones.
+        </p>
+      </ng-container>
+    </ng-container>
+  </section>
+
   <section class="card" style="margin-top:16px;" *ngIf="state.uuidNiche as uuidDecil">
     <h2>Tabla por deciles (epsilon / score)</h2>
     <div class="histogram-controls">

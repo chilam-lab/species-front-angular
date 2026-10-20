@@ -12,6 +12,7 @@ import {
   TargetFilters,
   DEFAULT_TARGET_FILTERS,
   CellScoreDetail,
+  ValidationResult,
 } from './nicho-analysis.models';
 import { environment } from '../../../../environments/environment';
 import type { TaxonSelectorSnapshot } from 'taxon-selector';
@@ -153,6 +154,13 @@ export class NicheAnalysisStateService {
   minNj = 5;
   apriori = false;
   mapaProb = false;
+  validationEnabled = false;
+  validationIterations = 5;
+
+  /** Resultado de la validación del último análisis (null si no se pidió). */
+  validationResult: ValidationResult | null = null;
+  validationLoading = false;
+  validationError: string | null = null;
 
   /** Payload con las opciones vigentes del análisis (también en un
    *  "Re-ejecutar": el guard las carga del análisis guardado y el usuario
@@ -164,6 +172,9 @@ export class NicheAnalysisStateService {
       min_nj: this.minNjEnabled ? minNj : 0,
       apriori: this.apriori,
       mapa_prob: this.mapaProb,
+      validation_iterations: this.validationEnabled
+        ? Math.min(10, Math.max(2, Math.floor(Number(this.validationIterations) || 5)))
+        : 0,
     };
   }
 
@@ -176,6 +187,8 @@ export class NicheAnalysisStateService {
     this.minNj = this.minNjEnabled ? payload.min_nj! : 5;
     this.apriori = payload.apriori === true;
     this.mapaProb = payload.mapa_prob === true;
+    this.validationEnabled = (payload.validation_iterations ?? 0) >= 2;
+    this.validationIterations = this.validationEnabled ? payload.validation_iterations! : 5;
   }
 
   // ===== Resultados =====
@@ -204,6 +217,10 @@ export class NicheAnalysisStateService {
         },
         error: () => { this.regionName = null; }
       });
+  }
+
+  getValidation(uuid: string) {
+    return this.http.post<ValidationResult>(`${environment.apiBaseUrl}/mdf/getEpsScrValidation`, { uuid });
   }
 
   /** Detalle de una celda del mapa de Resultados (lee el análisis en Redis). */

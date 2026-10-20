@@ -1,2 +1,11 @@
 /* Estilos compartidos en src/styles.scss (.card, .map-card, .map-wrap, .actions,
    .btn-primary, .alert-warning, .histogram-controls, .histograms-grid, .stack). */
+
+.validation-card {
+  margin-top: 16px;
+
+  h3 { margin-top: 0; }
+  .muted { color: #666; font-size: 0.85rem; }
+  .small { font-size: 0.78rem; }
+  .validation-table { margin-top: 12px; }
+}
