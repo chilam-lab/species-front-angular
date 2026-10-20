@@ -138,6 +138,9 @@
       [useCustomData]="true"
       [customData]="state.decileHistogramData"
       [height]="300"
+      [lineData]="recallLine"
+      lineLabel="Recall"
+      lineAxisLabel="Recall (%)"
       title="Score promedio por decil"
       xLabel="Decil"
       yLabel="Score promedio por decil">
@@ -153,16 +156,8 @@
         <p class="muted">
           {{ v.iterations }} iteraciones sobre {{ v.target_cells | number }} celdas del target. Recall del decil d =
           porcentaje de las celdas del target apartadas en cada iteración que quedaron en el decil d o superior del
-          score (promedio de las iteraciones).
+          score (promedio de las iteraciones). Se dibuja como línea sobre el histograma de score promedio por decil.
         </p>
-        <ui-histogram-chart
-          [useCustomData]="true"
-          [customData]="recallChartData"
-          [height]="300"
-          title="Recall por decil (%)"
-          xLabel="Decil"
-          yLabel="Recall (%)">
-        </ui-histogram-chart>
         <div class="table-wrap">
           <table class="summary-subtable validation-table">
             <thead>

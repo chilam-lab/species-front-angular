@@ -220,6 +220,7 @@ export class ResultadosStepComponent {
   private loadValidation(): void {
     this.state.validationResult = null;
     this.state.validationError = null;
+    this.recallLine = null;
     const uuid = this.state.uuidNiche;
     const iterations = this.state.validationEnabled ? this.state.validationIterations : 0;
     if (!uuid || iterations < 2) return;
@@ -229,6 +230,7 @@ export class ResultadosStepComponent {
         this.state.validationLoading = false;
         this.state.validationResult = v;
         if (v?.error) this.state.validationError = v.error;
+        this.updateRecallLine();
       },
       error: (err) => {
         this.state.validationLoading = false;
@@ -239,11 +241,20 @@ export class ResultadosStepComponent {
     });
   }
 
-  /** Recall por decil (%) para la gráfica, del decil 10 al 1. */
-  get recallChartData(): { label: string; value: number }[] {
-    return (this.state.validationResult?.deciles ?? [])
-      .filter((d) => d.recall !== null)
-      .map((d) => ({ label: String(d.decil), value: +(d.recall! * 100).toFixed(1) }));
+  /** Recall (%) alineado con las barras del histograma de deciles (mismo orden
+   *  de etiquetas); null sin validación. Se guarda como arreglo fijo y no como
+   *  getter: un arreglo nuevo en cada ciclo de detección de cambios haría que
+   *  la gráfica se redibujara sin parar. */
+  recallLine: Array<number | null> | null = null;
+
+  private updateRecallLine(): void {
+    const dec = this.state.validationResult?.deciles;
+    if (!dec?.length) { this.recallLine = null; return; }
+    const byDecil = new Map(dec.map((d) => [String(d.decil), d.recall]));
+    this.recallLine = this.state.decileHistogramData.map((b) => {
+      const r = byDecil.get(b.label);
+      return r === null || r === undefined ? null : +(r * 100).toFixed(1);
+    });
   }
 }
 
