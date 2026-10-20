@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,18 +6,21 @@ import { Router } from '@angular/router';
 import { TaxonSelectorComponent } from 'taxon-selector';
 import { TaxonNavigatorComponent } from 'taxon-navigator';
 import { TaxonScopeComponent } from 'taxon-scope';
+import { I18nService, TranslatePipe } from 'taxon-shared';
 
 import { NicheAnalysisStateService } from '../state/nicho-analysis-state.service';
-import { SOURCE_LABELS, TaxonSelectionPayload } from '../state/nicho-analysis.models';
+import { TaxonSelectionPayload } from '../state/nicho-analysis.models';
 
 @Component({
   selector: 'app-covariables-step',
   standalone: true,
-  imports: [CommonModule, FormsModule, TaxonSelectorComponent, TaxonNavigatorComponent, TaxonScopeComponent],
+  imports: [CommonModule, FormsModule, TaxonSelectorComponent, TaxonNavigatorComponent, TaxonScopeComponent, TranslatePipe],
   templateUrl: './covariables-step.component.html',
   styleUrls: ['./covariables-step.component.scss']
 })
 export class CovariablesStepComponent {
+  private readonly i18n = inject(I18nService);
+
   constructor(public state: NicheAnalysisStateService, private router: Router) {}
 
   /** Covariables del análisis cargado con "Re-ejecutar" mientras sigan vigentes,
@@ -26,8 +29,8 @@ export class CovariablesStepComponent {
     if (!this.state.usingPreloadedCovars) return [];
     if (this.state.preloadedMeta?.covars?.length) return this.state.preloadedMeta.covars;
     return (this.state.preloadedPayload!.covars ?? []).map(c => ({
-      source: SOURCE_LABELS[c.id_source] ?? `Fuente #${c.id_source}`,
-      values: c.q || 'Sin selección'
+      source: this.state.sourceLabel(c.id_source),
+      values: c.q || this.i18n.t('ni.none')
     }));
   }
 

@@ -1,38 +1,38 @@
 <section class="card" style="padding:16px;">
-  <h2>Resultados</h2>
+  <h2>{{ 'ni.r.title' | t }}</h2>
 
   <section class="card alert-info" *ngIf="state.preloadedPayload" style="margin:0 0 12px 0;">
-    Configuración recuperada del historial de análisis. Da clic en "Ejecutar Análisis" para correrla de nuevo.
+    {{ 'ni.r.preloaded' | t }}
   </section>
 
   <section class="card" style="margin:0 0 12px 0;">
-    <h3>Resumen</h3>
+    <h3>{{ 'ni.r.summary' | t }}</h3>
     <div class="table-wrap">
       <table class="summary-table">
         <tbody>
           <tr>
-            <th>Fuente</th>
+            <th>{{ 'ni.r.source' | t }}</th>
             <td>{{ targetSourceLabel }}</td>
           </tr>
           <tr>
-            <th>Región</th>
+            <th>{{ 'ni.r.region' | t }}</th>
             <td>{{ regionDisplay }}</td>
           </tr>
           <tr>
-            <th>Resolución</th>
+            <th>{{ 'ni.r.resolution' | t }}</th>
             <td>{{ resolutionDisplay }}</td>
           </tr>
           <tr>
-            <th>Grupo objetivo</th>
+            <th>{{ 'ni.r.target' | t }}</th>
             <td>{{ targetTaxonSummary }}</td>
           </tr>
           <tr>
-            <th>Grupo de covariables</th>
+            <th>{{ 'ni.r.covars' | t }}</th>
             <td>
-              <span *ngIf="covariablesSummary.length === 0">Sin selección</span>
+              <span *ngIf="covariablesSummary.length === 0">{{ 'ni.none' | t }}</span>
               <table *ngIf="covariablesSummary.length > 0" class="summary-subtable">
                 <thead>
-                  <tr><th>Fuente de datos</th><th>Valores seleccionados</th></tr>
+                  <tr><th>{{ 'ni.r.dataSource' | t }}</th><th>{{ 'ni.r.values' | t }}</th></tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let c of covariablesSummary">
@@ -44,11 +44,11 @@
             </td>
           </tr>
           <tr>
-            <th>Filtros del target</th>
+            <th>{{ 'ni.r.filters' | t }}</th>
             <td>{{ targetFiltersSummary }}</td>
           </tr>
           <tr>
-            <th>Opciones del análisis</th>
+            <th>{{ 'ni.r.options' | t }}</th>
             <td>{{ analysisOptionsSummary }}</td>
           </tr>
         </tbody>
@@ -67,8 +67,8 @@
             (click)="ejecutarAnalisis()"
             [disabled]="!canRunAnalysis || state.isAnalyzingNiche"
             [attr.aria-busy]="state.isAnalyzingNiche ? 'true' : 'false'"
-            [title]="!canRunAnalysis ? 'Completa Target y Covariables para poder ejecutar el análisis' : ''">
-      {{ state.isAnalyzingNiche ? 'Procesando…' : 'Ejecutar Análisis' }}
+            [title]="!canRunAnalysis ? ('ni.r.runDisabled' | t) : ''">
+      {{ (state.isAnalyzingNiche ? 'ni.processing' : 'ni.r.run') | t }}
     </button>
   </div>
 
@@ -76,14 +76,14 @@
        @ViewChild esté listo cuando se hace clic en "Ejecutar Análisis"). -->
   <div class="map-card" style="margin-bottom:16px;">
     <div class="map-header">
-      <h3>Mapa de Coocurrencias</h3>
+      <h3>{{ 'ni.r.map' | t }}</h3>
       <label class="color-mode" *ngIf="!lastRunProb">
-        Coloración
+        {{ 'ni.r.coloring' | t }}
         <select [(ngModel)]="state.scoreColorMode" name="scoreColorMode">
-          <option *ngFor="let m of colorModes" [value]="m.value">{{ m.label }}</option>
+          <option *ngFor="let m of colorModes" [value]="m.value">{{ m.labelKey | t }}</option>
         </select>
       </label>
-      <span class="color-mode muted" *ngIf="lastRunProb">Mapa de probabilidad: escala fija de 0 a 100%</span>
+      <span class="color-mode muted" *ngIf="lastRunProb">{{ 'ni.r.probScale' | t }}</span>
     </div>
     <div class="map-wrap">
       <app-mapa-maplibre
@@ -100,33 +100,33 @@
         (cellClick)="onResultCellClick($event)">
       </app-mapa-maplibre>
 
-      <aside class="cell-panel" *ngIf="cellPanel as p" role="dialog" [attr.aria-label]="'Celda ' + p.cellId">
+      <aside class="cell-panel" *ngIf="cellPanel as p" role="dialog" [attr.aria-label]="'ni.cell' | t: { id: p.cellId }">
         <header>
-          <h4>Celda {{ p.cellId }}</h4>
-          <button type="button" class="close" (click)="closeCellPanel()" aria-label="Cerrar">×</button>
+          <h4>{{ 'ni.cell' | t: { id: p.cellId } }}</h4>
+          <button type="button" class="close" (click)="closeCellPanel()" [attr.aria-label]="'ni.close' | t">×</button>
         </header>
         <div class="body">
-          <p *ngIf="p.loading" class="muted">Cargando detalle…</p>
+          <p *ngIf="p.loading" class="muted">{{ 'ni.r.loadingDetail' | t }}</p>
           <p *ngIf="p.error" class="muted">{{ p.error }}</p>
           <ng-container *ngIf="p.detail as d">
             <div class="cell-stats">
               <span *ngIf="d.mapa_prob && d.probabilidad !== null">
-                <strong>Probabilidad: {{ d.probabilidad * 100 | number:'1.2-2' }}%</strong>
+                <strong>{{ 'ni.r.probability' | t: { v: (d.probabilidad * 100 | number:'1.2-2') } }}</strong>
               </span>
               <span *ngIf="!d.mapa_prob && d.valor_mapa !== null">
-                <strong>Score de la celda: {{ d.valor_mapa | number:'1.2-2' }}</strong>
+                <strong>{{ 'ni.r.cellScore' | t: { v: (d.valor_mapa | number:'1.2-2') } }}</strong>
               </span>
-              <span *ngIf="d.apriori !== null">A priori: {{ d.apriori | number:'1.2-2' }}</span>
-              <span>Suma de scores: {{ d.suma_scores | number:'1.2-2' }}</span>
-              <span class="pos">{{ d.positivas }} a favor</span>
-              <span class="neg">{{ d.negativas }} en contra</span>
+              <span *ngIf="d.apriori !== null">{{ 'ni.r.apriori' | t: { v: (d.apriori | number:'1.2-2') } }}</span>
+              <span>{{ 'ni.r.sumScores' | t: { v: (d.suma_scores | number:'1.2-2') } }}</span>
+              <span class="pos">{{ 'ni.r.positive' | t: { n: d.positivas } }}</span>
+              <span class="neg">{{ 'ni.r.negative' | t: { n: d.negativas } }}</span>
             </div>
             <p *ngIf="!d.covariables.length" class="muted">
-              Ninguna covariable del análisis está presente en esta celda.
+              {{ 'ni.r.noCovars' | t }}
             </p>
             <table *ngIf="d.covariables.length">
               <thead>
-                <tr><th>Covariable</th><th>Fuente</th><th>Score</th><th>nij / nj</th></tr>
+                <tr><th>{{ 'ni.r.col.covar' | t }}</th><th>{{ 'ni.r.col.source' | t }}</th><th>Score</th><th>nij / nj</th></tr>
               </thead>
               <tbody>
                 <tr *ngFor="let c of d.covariables">
@@ -150,32 +150,25 @@
       [height]="300"
       [lineData]="recallLine"
       [lineTooltip]="recallTooltip"
-      lineLabel="Recall prom"
+      [lineLabel]="'ni.r.recallLabel' | t"
       lineAxisLabel="Recall (%)"
-      title="Score promedio por decil"
-      infoTitle="Histograma de deciles"
-      info="Muestra el promedio del score por celda dividido por deciles (las celdas se ordenan por su score; el decil 10 es el de mayor score). La línea es el recall: porcentaje de celdas del target que quedan en el decil o superior. Con validación es el promedio de las iteraciones (VP, FN y nulos en el detalle de cada punto)."
-      xLabel="Decil"
-      yLabel="Score promedio por decil">
+      [title]="'ni.r.decHistTitle' | t"
+      [infoTitle]="'ni.r.decHistInfoTitle' | t"
+      [info]="'ni.r.decHistInfo' | t"
+      [xLabel]="'ni.r.decile' | t"
+      [yLabel]="'ni.r.decHistTitle' | t">
     </ui-histogram-chart>
     <div class="recall-notes" *ngIf="state.validationLoading || state.validationError || state.validationResult as v">
-      <p *ngIf="state.validationLoading" class="muted">Calculando recall…</p>
+      <p *ngIf="state.validationLoading" class="muted">{{ 'ni.r.calcRecall' | t }}</p>
       <p *ngIf="state.validationError" class="alert-warning">{{ state.validationError }}</p>
       <ng-container *ngIf="state.validationResult as v">
         <ng-container *ngIf="!v.error && v.deciles?.length">
-          <p class="muted" *ngIf="v.full_model">
-            <strong>Recall (modelo completo):</strong> porcentaje de las {{ v.target_cells | number }} celdas del target
-            que quedaron en el decil d o superior del score, sin apartar celdas (como la versión estable). Para medirlo
-            apartando celdas, activa "Validación" en Opciones del análisis.
-          </p>
-          <p class="muted" *ngIf="!v.full_model">
-            <strong>Validación ({{ v.iterations }} iteraciones, {{ v.target_cells | number }} celdas del target):</strong>
-            recall del decil d = porcentaje de las celdas del target apartadas en cada iteración que quedaron en el
-            decil d o superior del score, promedio de las iteraciones.
-          </p>
+          <p class="muted" *ngIf="v.full_model"
+             [innerHTML]="'ni.r.fullModel' | t: { n: (v.target_cells | number) }"></p>
+          <p class="muted" *ngIf="!v.full_model"
+             [innerHTML]="'ni.r.kfold' | t: { k: v.iterations, n: (v.target_cells | number) }"></p>
           <p class="muted small">
-            VP: celdas del target en el decil o superior · FN: por debajo · Nulos: sin ninguna covariable (no cuentan
-            en el recall).<ng-container *ngIf="!v.full_model"> Conteos sumados de todas las iteraciones.</ng-container>
+            {{ 'ni.r.vpfn' | t }}<ng-container *ngIf="!v.full_model">{{ 'ni.r.summed' | t }}</ng-container>
           </p>
         </ng-container>
       </ng-container>
@@ -184,13 +177,13 @@
 
 
   <section class="card" style="margin-top:16px;" *ngIf="state.uuidNiche as uuidDecil">
-    <h2>Tabla por deciles</h2>
+    <h2>{{ 'ni.r.decTable' | t }}</h2>
     <div class="histogram-controls">
-      <label for="decilSelect">Decil:</label>
+      <label for="decilSelect">{{ 'ni.r.decLabel' | t }}</label>
       <select id="decilSelect" [(ngModel)]="state.selectedDecile">
         <option *ngFor="let d of [10,9,8,7,6,5,4,3,2,1]" [value]="d">{{ d }}</option>
       </select>
-      <span style="font-size:0.85rem; opacity:0.8;">Variables presentes en las celdas del decil seleccionado (las celdas se ordenan por su score; el decil 10 es el de mayor score).</span>
+      <span style="font-size:0.85rem; opacity:0.8;">{{ 'ni.r.decHint' | t }}</span>
     </div>
     <tabla-species
       [decileMode]="true"
@@ -198,43 +191,43 @@
       [decile]="state.selectedDecile"
       [metric]="'epsilon'"
       exportName="nicho_deciles"
-      exportTitle="Nicho ecológico - tabla por deciles"
+      [exportTitle]="'ni.r.decExport' | t"
       [loading]="state.isAnalyzingNiche">
     </tabla-species>
   </section>
 
   <section class="card" style="margin-top:16px;" *ngIf="state.uuidNiche as id">
-    <h2>Distribuciones (Histograma)</h2>
+    <h2>{{ 'ni.r.hists' | t }}</h2>
     <div class="histogram-controls">
-      <label for="buckets">Rangos:</label>
+      <label for="buckets">{{ 'ni.r.buckets' | t }}</label>
       <input id="buckets" type="number" min="5" max="60" step="1" [(ngModel)]="histogramBuckets" />
-      <small>(default 10)</small>
+      <small>{{ 'ni.r.default' | t }}</small>
     </div>
     <div class="histograms-grid">
       <ui-histogram-chart endpoint="frequency" metric="epsilon" [uuid]="id" [numBuckets]="histogramBuckets" [height]="400"
-        title="Epsilon (frecuencia)" xLabel="Rangos" yLabel="Frecuencia"
-        info="Muestra la frecuencia por rango donde están las variables por su valor de epsilon."></ui-histogram-chart>
+        [title]="'ni.r.h.eps' | t" [xLabel]="'ni.r.ranges' | t" [yLabel]="'ni.r.frequency' | t"
+        [info]="'ni.r.h.epsInfo' | t"></ui-histogram-chart>
       <ui-histogram-chart endpoint="frequency" metric="score" [uuid]="id" [numBuckets]="histogramBuckets" [height]="400"
-        title="Score (frecuencia)" xLabel="Rangos" yLabel="Frecuencia"
-        info="Muestra la frecuencia por rango donde están las variables por su valor de score."></ui-histogram-chart>
+        [title]="'ni.r.h.score' | t" [xLabel]="'ni.r.ranges' | t" [yLabel]="'ni.r.frequency' | t"
+        [info]="'ni.r.h.scoreInfo' | t"></ui-histogram-chart>
       <ui-histogram-chart endpoint="bycell" metric="score" [uuid]="id" [numBuckets]="histogramBuckets" [height]="400"
-        title="Score (celdas seleccionadas)" xLabel="Rangos" yLabel="Frecuencia"
-        info="Muestra la frecuencia por rango donde están las celdas por su valor de score."></ui-histogram-chart>
+        [title]="'ni.r.h.cells' | t" [xLabel]="'ni.r.ranges' | t" [yLabel]="'ni.r.frequency' | t"
+        [info]="'ni.r.h.cellsInfo' | t"></ui-histogram-chart>
     </div>
   </section>
 
   <section class="card table-row" style="margin-top:16px;">
-    <h2>Tabla Relaciones</h2>
+    <h2>{{ 'ni.r.relTable' | t }}</h2>
     <tabla-species
       [autoFetch]="false"
       [rowsFromMap]="state.tableRows"
       exportName="nicho_relaciones"
-      exportTitle="Nicho ecológico - relaciones"
+      [exportTitle]="'ni.r.relExport' | t"
       [loading]="state.isAnalyzingNiche">
     </tabla-species>
   </section>
 
   <div class="card actions" style="margin-top:16px;">
-    <button class="btn-primary" type="button" (click)="goBack()">← Volver a Covariables</button>
+    <button class="btn-primary" type="button" (click)="goBack()">{{ 'ni.r.back' | t }}</button>
   </div>
 </section>

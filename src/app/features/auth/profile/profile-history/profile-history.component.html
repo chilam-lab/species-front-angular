@@ -1,28 +1,25 @@
 <div class="profile-history">
-  <h2>Historial de análisis</h2>
-  <p class="hint">
-    Se guarda la configuración de cada análisis que corres (no el resultado, que expira a los 15 minutos).
-    "Re-ejecutar" te manda a Resultados con la configuración ya cargada, solo falta dar clic en "Ejecutar Análisis".
-  </p>
+  <h2>{{ 'hist.title' | t }}</h2>
+  <p class="hint">{{ 'hist.hint' | t }}</p>
 
-  <div *ngIf="loading">Cargando…</div>
+  <div *ngIf="loading">{{ 'ni.loading' | t }}</div>
   <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
   <div class="table-scroll" *ngIf="!loading && rows.length > 0">
   <table>
     <thead>
       <tr>
-        <th>Fecha</th>
-        <th>Fuente · Región · Resolución</th>
-        <th>Target</th>
-        <th>Covariables</th>
-        <th>Opciones</th>
+        <th>{{ 'hist.date' | t }}</th>
+        <th>{{ 'hist.context' | t }}</th>
+        <th>{{ 'hist.target' | t }}</th>
+        <th>{{ 'hist.covars' | t }}</th>
+        <th>{{ 'hist.options' | t }}</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let row of rows">
-        <td class="nowrap">{{ row.fecha_creacion | date:'short' }}</td>
+        <td class="nowrap">{{ fmtDate(row.fecha_creacion) }}</td>
         <td>
           <div *ngFor="let line of contextLines(row)">{{ line }}</div>
         </td>
@@ -35,8 +32,8 @@
         </td>
         <td class="col-actions">
           <div class="actions-inner">
-            <button type="button" (click)="rerun(row)">Re-ejecutar</button>
-            <button type="button" class="danger" (click)="remove(row)">Eliminar</button>
+            <button type="button" (click)="rerun(row)">{{ 'hist.rerun' | t }}</button>
+            <button type="button" class="danger" (click)="remove(row)">{{ 'ni.delete' | t }}</button>
           </div>
         </td>
       </tr>
@@ -44,5 +41,5 @@
   </table>
   </div>
 
-  <p *ngIf="!loading && rows.length === 0">Todavía no has corrido ningún análisis con tu sesión iniciada.</p>
+  <p *ngIf="!loading && rows.length === 0">{{ 'hist.empty' | t }}</p>
 </div>

@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, effect, inject, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,15 +6,16 @@ import { Router } from '@angular/router';
 import { MapaMaplibreComponent } from 'mapa-maplibre';
 import { TablaSpeciesComponent } from 'tabla-species';
 import { HistogramChartComponent } from 'histogram-chart';
+import { I18nService, TranslatePipe } from 'taxon-shared';
 
 import { NicheAnalysisStateService } from '../state/nicho-analysis-state.service';
-import { CellScoreDetail, SOURCE_LABELS, TargetFilters } from '../state/nicho-analysis.models';
+import { CellScoreDetail, TargetFilters } from '../state/nicho-analysis.models';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-resultados-step',
   standalone: true,
-  imports: [CommonModule, FormsModule, MapaMaplibreComponent, TablaSpeciesComponent, HistogramChartComponent],
+  imports: [CommonModule, FormsModule, MapaMaplibreComponent, TablaSpeciesComponent, HistogramChartComponent, TranslatePipe],
   templateUrl: './resultados-step.component.html',
   styleUrls: ['./resultados-step.component.scss']
 })
@@ -23,7 +24,16 @@ export class ResultadosStepComponent {
 
   histogramBuckets = 10;
 
-  constructor(public state: NicheAnalysisStateService, private router: Router, private auth: AuthService) {}
+  private readonly i18n = inject(I18nService);
+
+  constructor(public state: NicheAnalysisStateService, private router: Router, private auth: AuthService) {
+    // El detalle del tooltip de la línea de recall se arma como texto: se
+    // rehace al cambiar de idioma.
+    effect(() => {
+      this.i18n.lang();
+      untracked(() => this.updateRecallLine());
+    });
+  }
 
   goBack(): void {
     this.router.navigate(['/nicho-ecologico/covariables']);
@@ -35,15 +45,15 @@ export class ResultadosStepComponent {
 
   get targetSourceLabel(): string {
     if (this.state.usingPreloadedTarget && this.state.preloadedMeta?.targetSourceLabel) return this.state.preloadedMeta.targetSourceLabel;
-    if (this.state.targetTercero) return SOURCE_LABELS['terceros'];
+    if (this.state.targetTercero) return this.state.sourceLabel('terceros');
     const id = this.state.targetSourceId;
-    return id != null ? (SOURCE_LABELS[id] ?? `Fuente #${id}`) : '—';
+    return id != null ? this.state.sourceLabel(id) : '—';
   }
 
   get regionDisplay(): string {
     if (this.state.usingPreloadedTarget && this.state.preloadedMeta?.region) return this.state.preloadedMeta.region;
     if (this.state.regionName) return this.state.regionName;
-    return this.state.regionId != null ? `Región #${this.state.regionId}` : '—';
+    return this.state.regionId != null ? this.i18n.t('ni.region', { id: this.state.regionId }) : '—';
   }
 
   get resolutionDisplay(): string {
@@ -53,13 +63,13 @@ export class ResultadosStepComponent {
 
   get targetTaxonSummary(): string {
     if (this.state.usingPreloadedTarget) {
-      return this.state.preloadedPayload!.target?.[0]?.q || 'Sin selección';
+      return this.state.preloadedPayload!.target?.[0]?.q || this.i18n.t('ni.none');
     }
-    if (this.state.targetTercero) return `Colección propia: ${this.state.targetTercero.nombre_datos}`;
+    if (this.state.targetTercero) return this.i18n.t('ni.r.ownCollection', { name: this.state.targetTercero.nombre_datos });
     const levels = this.state.taxonSel?.levels ?? [];
-    if (levels.length === 0) return 'Sin selección';
+    if (levels.length === 0) return this.i18n.t('ni.none');
     return levels
-      .map(l => `${l.level}: ${(l.values ?? []).join(', ')}`)
+      .map(l => `${this.i18n.level(l.level)}: ${(l.values ?? []).join(', ')}`)
       .join(' · ');
   }
 
@@ -67,47 +77,49 @@ export class ResultadosStepComponent {
     if (this.state.usingPreloadedCovars) {
       if (this.state.preloadedMeta?.covars?.length) return this.state.preloadedMeta.covars;
       return (this.state.preloadedPayload!.covars ?? []).map(c => ({
-        source: SOURCE_LABELS[c.id_source] ?? `Fuente #${c.id_source}`,
-        values: c.q || 'Sin selección'
+        source: this.state.sourceLabel(c.id_source),
+        values: c.q || this.i18n.t('ni.none')
       }));
     }
     const taxonSummaries = this.state.taxonSel2Sources.map(src => {
-      const label = SOURCE_LABELS[src.source_id] ?? `Fuente #${src.source_id}`;
+      const label = this.state.sourceLabel(src.source_id);
       if (src.context?.idfuente != null || src.context?.layer) {
         const startLabel = this.state.covarStartLabel(src.source_id);
         if (startLabel) return { source: label, values: startLabel };
         const parts = [
-          src.context?.idfuente != null ? `variable ${src.context.idfuente}` : null,
-          src.context?.layer ? `capa ${src.context.layer}` : null
+          src.context?.idfuente != null ? this.i18n.t('ni.r.variable', { v: src.context.idfuente }) : null,
+          src.context?.layer ? this.i18n.t('ni.r.layer', { v: src.context.layer }) : null
         ].filter(Boolean);
-        return { source: label, values: parts.join(' · ') || 'Sin selección' };
+        return { source: label, values: parts.join(' · ') || this.i18n.t('ni.none') };
       }
-      const values = src.levels.map(l => `${l.level}: ${(l.values ?? []).join(', ')}`).join(' · ');
-      return { source: label, values: values || 'Sin selección' };
+      const values = src.levels.map(l => `${this.i18n.level(l.level)}: ${(l.values ?? []).join(', ')}`).join(' · ');
+      return { source: label, values: values || this.i18n.t('ni.none') };
     });
     const tercerosSummaries = this.state.covarTerceros.map(c => ({
-      source: SOURCE_LABELS['terceros'],
+      source: this.state.sourceLabel('terceros'),
       values: c.nombre_datos
     }));
     return [...taxonSummaries, ...tercerosSummaries];
   }
 
   get targetFiltersSummary(): string {
-    if (this.state.targetTercero) return 'No aplica (colección propia)';
+    if (this.state.targetTercero) return this.i18n.t('ni.r.notApplicable');
     const f = this.state.usingPreloadedTarget
       ? this.state.preloadedPayload!.target_filters
       : this.state.targetFilters;
-    const base = describeTargetFilters(f);
+    const base = describeTargetFilters(f, this.i18n);
     const n = this.state.excludedCells.length;
-    return n ? `${base} · ${n} celda${n === 1 ? '' : 's'} borrada${n === 1 ? '' : 's'}` : base;
+    return n ? `${base} · ${this.i18n.t('ni.r.cellsDeleted', { n })}` : base;
   }
 
   get analysisOptionsSummary(): string {
+    const t = (k: string, p?: Record<string, string | number>) => this.i18n.t(k, p);
+    const yn = (b: boolean) => t(b ? 'ni.yes' : 'ni.no');
     const parts = [
-      this.state.minNjEnabled ? `nj mínimo: ${this.state.minNj}` : 'Sin mínimo de nj',
-      `A priori: ${this.state.apriori ? 'sí' : 'no'}`,
-      `Mapa de probabilidad: ${this.state.mapaProb ? 'sí' : 'no'}`,
-      this.state.validationEnabled ? `Validación: ${this.state.validationIterations} iteraciones` : 'Sin validación',
+      this.state.minNjEnabled ? t('ni.r.opt.minNj', { n: this.state.minNj }) : t('ni.r.opt.noMinNj'),
+      t('ni.r.opt.apriori', { v: yn(this.state.apriori) }),
+      t('ni.r.opt.prob', { v: yn(this.state.mapaProb) }),
+      this.state.validationEnabled ? t('ni.r.opt.validation', { n: this.state.validationIterations }) : t('ni.r.opt.noValidation'),
     ];
     return parts.join(' · ');
   }
@@ -117,9 +129,9 @@ export class ResultadosStepComponent {
   lastRunProb = false;
 
   readonly colorModes = [
-    { value: 'deviation', label: 'Desviación estándar' },
-    { value: 'range', label: 'Rango igual' },
-    { value: 'jenks', label: 'Cortes naturales' },
+    { value: 'deviation', labelKey: 'ni.r.mode.deviation' },
+    { value: 'range', labelKey: 'ni.r.mode.range' },
+    { value: 'jenks', labelKey: 'ni.r.mode.jenks' },
   ] as const;
 
   /** Panel con el detalle de la celda seleccionada en el mapa de Resultados. */
@@ -142,8 +154,8 @@ export class ResultadosStepComponent {
         const serverMsg = typeof err?.error?.error === 'string' ? err.error.error : null;
         const msg = serverMsg
           ?? (err?.status === 404
-            ? 'El detalle por celda no está disponible en el servidor (falta actualizar el servicio).'
-            : 'No se pudo obtener el detalle de la celda.');
+            ? this.i18n.t('ni.r.cellNoRoute')
+            : this.i18n.t('ni.r.cellError'));
         this.cellPanel = { cellId, loading: false, error: msg, detail: null };
       },
     });
@@ -163,7 +175,7 @@ export class ResultadosStepComponent {
   }
 
   sourceLabel(id: number | string): string {
-    return SOURCE_LABELS[id] ?? `Fuente #${id}`;
+    return this.state.sourceLabel(id);
   }
 
   get canRunAnalysis(): boolean {
@@ -200,7 +212,7 @@ export class ResultadosStepComponent {
       this.mapNiche.getEpsScrRelation(payloadConSesion as any);
     } else {
       console.warn('getEpsScrRelation no existe en app-mapa-maplibre.');
-      this.state.showValidationMessages(['No se encontró getEpsScrRelation en el mapa de Resultados.']);
+      this.state.showValidationMessages([this.i18n.t('ni.r.noMap')]);
       this.state.isAnalyzingNiche = false;
     }
   }
@@ -248,7 +260,7 @@ export class ResultadosStepComponent {
         this.state.validationLoading = false;
         this.state.validationError = typeof err?.error?.error === 'string'
           ? err.error.error
-          : 'No se pudo obtener la validación.';
+          : this.i18n.t('ni.r.validationError');
       },
     });
   }
@@ -274,9 +286,10 @@ export class ResultadosStepComponent {
     this.recallTooltip = this.state.decileHistogramData.map((b) => {
       const d = byDecil.get(b.label);
       if (!d) return null;
-      const lines = [`VP: ${d.vp}`, `FN: ${d.fn}`, `Nulos: ${d.nulo}`];
+      const t = (k: string, p: Record<string, string | number>) => this.i18n.t(k, p);
+      const lines = [t('ni.r.tt.vp', { n: d.vp }), t('ni.r.tt.fn', { n: d.fn }), t('ni.r.tt.null', { n: d.nulo })];
       if (!v!.full_model && d.recall_min !== null && d.recall_max !== null) {
-        lines.push(`Rango entre iteraciones: ${(d.recall_min * 100).toFixed(1)}–${(d.recall_max * 100).toFixed(1)}%`);
+        lines.push(t('ni.r.tt.range', { a: (d.recall_min * 100).toFixed(1), b: (d.recall_max * 100).toFixed(1) }));
       }
       return lines;
     });
@@ -284,12 +297,13 @@ export class ResultadosStepComponent {
 }
 
 /** Texto legible de los filtros del target (también lo usa el historial). */
-export function describeTargetFilters(f: TargetFilters | undefined | null): string {
-  if (!f) return 'Sin filtros';
+export function describeTargetFilters(f: TargetFilters | undefined | null, i18n: I18nService): string {
+  if (!f) return i18n.t('ni.f.none');
   const ini = f.fecha_inicio, fin = f.fecha_fin;
-  const fechas = ini !== null && fin !== null ? `Años ${ini}–${fin}`
-    : ini !== null ? `Desde ${ini}`
-    : fin !== null ? `Hasta ${fin}`
-    : 'Cualquier año';
-  return [fechas, `Sin fecha: ${f.sin_fecha ? 'sí' : 'no'}`, `Fósiles: ${f.fosil ? 'sí' : 'no'}`].join(' · ');
+  const yn = (b: boolean) => i18n.t(b ? 'ni.yes' : 'ni.no');
+  const fechas = ini !== null && fin !== null ? i18n.t('ni.f.years', { a: ini, b: fin })
+    : ini !== null ? i18n.t('ni.f.from', { a: ini })
+    : fin !== null ? i18n.t('ni.f.to', { b: fin })
+    : i18n.t('ni.f.any');
+  return [fechas, i18n.t('ni.f.noDate', { v: yn(f.sin_fecha) }), i18n.t('ni.f.fossil', { v: yn(f.fosil) })].join(' · ');
 }

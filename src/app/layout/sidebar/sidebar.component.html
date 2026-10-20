@@ -3,25 +3,25 @@
     <li>
       <a routerLink="/nicho-ecologico/target">
         <span class="material-icons">eco</span>
-        <span *ngIf="!collapsed">Nicho Ecológico</span>
+        <span *ngIf="!collapsed">{{ 'nav.niche' | t }}</span>
       </a>
     </li>
     <li>
       <a href="#">
         <span class="material-icons">account_tree</span>
-        <span *ngIf="!collapsed">Redes Ecológicas</span>
+        <span *ngIf="!collapsed">{{ 'nav.networks' | t }}</span>
       </a>
     </li>
     <li>
       <a href="#">
         <span class="material-icons">analytics</span>
-        <span *ngIf="!collapsed">Casos de Uso</span>
+        <span *ngIf="!collapsed">{{ 'nav.cases' | t }}</span>
       </a>
     </li>
     <li>
-      <a href="#">
+      <a href="javascript:void(0)" (click)="cycleLang()" [title]="'app.language' | t">
         <span class="material-icons">language</span>
-        <span *ngIf="!collapsed">Idioma</span>
+        <span *ngIf="!collapsed">{{ 'nav.language' | t }}: {{ i18n.lang().toUpperCase() }}</span>
       </a>
     </li>
     <li>
@@ -34,7 +34,7 @@
       <ng-template #loginLink>
         <a routerLink="/login">
           <span class="material-icons">login</span>
-          <span *ngIf="!collapsed">Login</span>
+          <span *ngIf="!collapsed">{{ 'nav.login' | t }}</span>
         </a>
       </ng-template>
     </li>

@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { I18nService, TranslatePipe } from 'taxon-shared';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -11,11 +12,12 @@ const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)\S{6,12}$/;
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
 export class RegisterComponent {
+  private readonly i18n = inject(I18nService);
   submitting = false;
   showPassword = false;
   errorMessage: string | null = null;
@@ -52,7 +54,7 @@ export class RegisterComponent {
         },
         error: (msg) => {
           this.submitting = false;
-          this.errorMessage = typeof msg === 'string' ? msg : 'No se pudo completar el registro.';
+          this.errorMessage = typeof msg === 'string' ? msg : this.i18n.t('auth.register.error');
         },
       });
   }

@@ -33,8 +33,33 @@
 
   .titles { min-width: 0; }
 
-  .account {
+  .header-right {
     margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .lang-switch {
+    display: flex;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 4px;
+    overflow: hidden;
+
+    button {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.8);
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+
+      &.active { background: rgba(255, 255, 255, 0.2); color: #fff; font-weight: 600; }
+      &:hover:not(.active) { background: rgba(255, 255, 255, 0.1); }
+    }
+  }
+
+  .account {
     display: flex;
     align-items: center;
     gap: 10px;

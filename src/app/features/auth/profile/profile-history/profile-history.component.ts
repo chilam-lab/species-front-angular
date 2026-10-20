@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { I18nService, TranslatePipe } from 'taxon-shared';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AnalysisHistoryService } from '../../../../core/analysis-history/analysis-history.service';
@@ -10,7 +11,7 @@ import { describeTargetFilters } from '../../../nicho-ecologico/resultados-step/
 @Component({
   selector: 'app-profile-history',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './profile-history.component.html',
   styleUrls: ['./profile-history.component.scss']
 })
@@ -18,6 +19,14 @@ export class ProfileHistoryComponent implements OnInit {
   rows: AnalysisHistoryRow[] = [];
   loading = true;
   errorMessage: string | null = null;
+  private readonly i18n = inject(I18nService);
+
+  /** Fecha y hora cortas en el formato del idioma vigente. */
+  fmtDate(value: string | Date | null | undefined): string {
+    if (!value) return '—';
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString(this.i18n.locale(), { dateStyle: 'short', timeStyle: 'short' });
+  }
 
   constructor(
     private history: AnalysisHistoryService,
@@ -39,7 +48,7 @@ export class ProfileHistoryComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.errorMessage = 'No se pudo cargar el historial de análisis.';
+        this.errorMessage = this.i18n.t('hist.loadError');
         this.loading = false;
       },
     });
@@ -57,13 +66,13 @@ export class ProfileHistoryComponent implements OnInit {
 
   private fallbackTargetLabel(row: AnalysisHistoryRow): string {
     const id = row.payload?.target?.[0]?.id_source;
-    return id != null ? (SOURCE_LABELS[id] ?? `Fuente #${id}`) : '—';
+    return id != null ? this.sourceLabel(id) : '—';
   }
 
   /** Qué taxón/grupo se seleccionó como target, ej. "clase = Mammalia"
    *  (la fuente ya se muestra en contextLines, no se repite aquí). */
   targetSummary(row: AnalysisHistoryRow): string {
-    return row.payload?.target?.[0]?.q || 'Sin selección';
+    return row.payload?.target?.[0]?.q || this.i18n.t('ni.none');
   }
 
   /** Una línea por covariable. */
@@ -74,7 +83,7 @@ export class ProfileHistoryComponent implements OnInit {
     const covars = row.payload?.covars ?? [];
     if (covars.length === 0) return ['—'];
     return covars.map((c) => {
-      const label = SOURCE_LABELS[c.id_source] ?? `Fuente #${c.id_source}`;
+      const label = this.sourceLabel(c.id_source);
       return c.q ? `${label}: ${c.q}` : label;
     });
   }
@@ -83,14 +92,16 @@ export class ProfileHistoryComponent implements OnInit {
    *  probabilidad). Análisis anteriores a esas opciones no las traen. */
   optionsLines(row: AnalysisHistoryRow): string[] {
     const p = row.payload;
+    const t = (k: string, prm?: Record<string, string | number>) => this.i18n.t(k, prm);
+    const yn = (b: unknown) => t(b ? 'ni.yes' : 'ni.no');
     if (!p || (p.min_nj === undefined && p.apriori === undefined && p.mapa_prob === undefined && !p.target_filters)) return ['—'];
     return [
-      ...(p.target_filters ? [`Target: ${describeTargetFilters(p.target_filters)}`] : []),
-      ...(p.excluded_cells?.length ? [`Celdas borradas: ${p.excluded_cells.length}`] : []),
-      (p.min_nj ?? 0) > 0 ? `nj mínimo: ${p.min_nj}` : 'Sin mínimo de nj',
-      `A priori: ${p.apriori ? 'sí' : 'no'}`,
-      `Probabilidad: ${p.mapa_prob ? 'sí' : 'no'}`,
-      ...((p.validation_iterations ?? 0) >= 2 ? [`Validación: ${p.validation_iterations} iteraciones`] : []),
+      ...(p.target_filters ? [t('hist.targetFilters', { v: describeTargetFilters(p.target_filters, this.i18n) })] : []),
+      ...(p.excluded_cells?.length ? [t('hist.cellsDeleted', { n: p.excluded_cells.length })] : []),
+      (p.min_nj ?? 0) > 0 ? t('ni.r.opt.minNj', { n: p.min_nj! }) : t('ni.r.opt.noMinNj'),
+      t('ni.r.opt.apriori', { v: yn(p.apriori) }),
+      t('hist.prob', { v: yn(p.mapa_prob) }),
+      ...((p.validation_iterations ?? 0) >= 2 ? [t('ni.r.opt.validation', { n: p.validation_iterations! })] : []),
     ];
   }
 
@@ -102,13 +113,18 @@ export class ProfileHistoryComponent implements OnInit {
     this.router.navigateByUrl('/nicho-ecologico/resultados');
   }
 
+  private sourceLabel(id: number | string): string {
+    if (id === 'terceros') return this.i18n.t('ni.myData');
+    return SOURCE_LABELS[id] ?? this.i18n.t('ni.source', { id });
+  }
+
   remove(row: AnalysisHistoryRow): void {
     this.history.remove(row.id).subscribe({
       next: () => {
         this.rows = this.rows.filter((r) => r.id !== row.id);
       },
       error: () => {
-        this.errorMessage = 'No se pudo eliminar el registro.';
+        this.errorMessage = this.i18n.t('hist.deleteError');
       },
     });
   }

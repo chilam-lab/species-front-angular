@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { I18nService, TranslatePipe } from 'taxon-shared';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
@@ -7,11 +8,12 @@ import { AuthService } from '../../../core/auth/auth.service';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
+  private readonly i18n = inject(I18nService);
   submitting = false;
   errorMessage: string | null = null;
   showPassword = false;
@@ -49,7 +51,7 @@ export class LoginComponent {
       },
       error: (msg) => {
         this.submitting = false;
-        this.errorMessage = typeof msg === 'string' ? msg : 'No se pudo iniciar sesión.';
+        this.errorMessage = typeof msg === 'string' ? msg : this.i18n.t('auth.login.error');
       },
     });
   }

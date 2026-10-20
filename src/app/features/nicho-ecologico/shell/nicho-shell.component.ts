@@ -1,22 +1,23 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
-import { NichoStepDef, NichoStepperComponent } from 'taxon-shared';
+import { I18nService, NichoStepDef, NichoStepperComponent, TranslatePipe } from 'taxon-shared';
 import { NicheAnalysisStateService } from '../state/nicho-analysis-state.service';
 
 const STEP_PATHS = ['target', 'covariables', 'resultados'];
 
+// Claves de traducción (APP_I18N).
 const STEP_META: { title: string; description: string }[] = [
-  { title: 'Configuración Target', description: 'Selecciona la fuente de datos, el área de estudio y la especie objetivo.' },
-  { title: 'Configuración Covariables', description: 'Elige las variables con las que se va a cruzar el grupo objetivo.' },
-  { title: 'Resultados', description: 'Revisa el resumen y ejecuta el análisis para ver mapa, histogramas y tabla.' }
+  { title: 'step.target.title', description: 'step.target.desc' },
+  { title: 'step.covars.title', description: 'step.covars.desc' },
+  { title: 'step.results.title', description: 'step.results.desc' }
 ];
 
 @Component({
   selector: 'app-nicho-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, NichoStepperComponent],
+  imports: [CommonModule, RouterOutlet, NichoStepperComponent, TranslatePipe],
   // NicheAnalysisStateService se provee en la ruta padre (nicho-ecologico.routes.ts),
   // no aquí — así el guard de ruta (canActivate) también puede inyectarlo.
   templateUrl: './nicho-shell.component.html',
@@ -25,6 +26,8 @@ const STEP_META: { title: string; description: string }[] = [
 export class NichoShellComponent implements OnInit, OnDestroy {
   activeIndex = 0;
   private sub?: Subscription;
+
+  private readonly i18n = inject(I18nService);
 
   constructor(private router: Router, private state: NicheAnalysisStateService) {}
 
@@ -46,9 +49,9 @@ export class NichoShellComponent implements OnInit, OnDestroy {
 
   get steps(): NichoStepDef[] {
     return [
-      { label: 'Target', state: this.stateFor(0) },
-      { label: 'Covariables', state: this.stateFor(1) },
-      { label: 'Resultados', state: this.stateFor(2) }
+      { label: this.i18n.t('step.target'), state: this.stateFor(0) },
+      { label: this.i18n.t('step.covars'), state: this.stateFor(1) },
+      { label: this.i18n.t('step.results'), state: this.stateFor(2) }
     ];
   }
 

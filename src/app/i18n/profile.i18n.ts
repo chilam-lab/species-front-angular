@@ -1,0 +1,47 @@
+import { Translations } from 'taxon-shared';
+
+/** Textos de Mi cuenta: perfil, seguridad, historial y mis datos. */
+export const PROFILE_I18N: Translations = {
+  es: {
+    'prof.title': 'Mi cuenta', 'prof.logout': 'Cerrar sesión',
+    'prof.tab.profile': 'Perfil', 'prof.tab.security': 'Seguridad', 'prof.tab.history': 'Historial de análisis', 'prof.tab.data': 'Mis datos',
+    'prof.email': 'Correo', 'prof.memberSince': 'Miembro desde', 'prof.name': 'Nombre', 'prof.nameRequired': 'El nombre es obligatorio.',
+    'prof.origin': 'Procedencia', 'prof.language': 'Idioma preferido',
+    'prof.languageHint': 'Se aplica en cualquier dispositivo donde inicies sesión.',
+    'prof.save': 'Guardar cambios', 'prof.saving': 'Guardando…',
+    'prof.saved': 'Cambios guardados correctamente.', 'prof.saveError': 'No se pudo actualizar el perfil.',
+    'lang.es': 'Español', 'lang.en': 'English', 'lang.pt': 'Português',
+    'sec.title': 'Cambiar contraseña', 'sec.hint': 'Debe tener entre 6 y 12 caracteres, incluir mayúscula, minúscula, al menos un número y sin espacios.',
+    'sec.current': 'Contraseña actual', 'sec.new': 'Nueva contraseña', 'sec.confirm': 'Confirmar nueva contraseña',
+    'sec.mismatch': 'Las contraseñas no coinciden.', 'sec.submit': 'Cambiar contraseña', 'sec.saving': 'Guardando…',
+    'sec.saved': 'Contraseña actualizada correctamente.', 'sec.error': 'No se pudo cambiar la contraseña.',
+  },
+  en: {
+    'prof.title': 'My account', 'prof.logout': 'Sign out',
+    'prof.tab.profile': 'Profile', 'prof.tab.security': 'Security', 'prof.tab.history': 'Analysis history', 'prof.tab.data': 'My data',
+    'prof.email': 'Email', 'prof.memberSince': 'Member since', 'prof.name': 'Name', 'prof.nameRequired': 'Name is required.',
+    'prof.origin': 'Affiliation', 'prof.language': 'Preferred language',
+    'prof.languageHint': 'Applied on any device where you sign in.',
+    'prof.save': 'Save changes', 'prof.saving': 'Saving…',
+    'prof.saved': 'Changes saved.', 'prof.saveError': 'The profile could not be updated.',
+    'lang.es': 'Español', 'lang.en': 'English', 'lang.pt': 'Português',
+    'sec.title': 'Change password', 'sec.hint': 'It must have 6 to 12 characters, an uppercase letter, a lowercase letter, at least one number and no spaces.',
+    'sec.current': 'Current password', 'sec.new': 'New password', 'sec.confirm': 'Confirm new password',
+    'sec.mismatch': 'Passwords do not match.', 'sec.submit': 'Change password', 'sec.saving': 'Saving…',
+    'sec.saved': 'Password updated.', 'sec.error': 'The password could not be changed.',
+  },
+  pt: {
+    'prof.title': 'Minha conta', 'prof.logout': 'Sair',
+    'prof.tab.profile': 'Perfil', 'prof.tab.security': 'Segurança', 'prof.tab.history': 'Histórico de análises', 'prof.tab.data': 'Meus dados',
+    'prof.email': 'E-mail', 'prof.memberSince': 'Membro desde', 'prof.name': 'Nome', 'prof.nameRequired': 'O nome é obrigatório.',
+    'prof.origin': 'Instituição', 'prof.language': 'Idioma preferido',
+    'prof.languageHint': 'É aplicado em qualquer dispositivo onde você entrar.',
+    'prof.save': 'Salvar alterações', 'prof.saving': 'Salvando…',
+    'prof.saved': 'Alterações salvas.', 'prof.saveError': 'Não foi possível atualizar o perfil.',
+    'lang.es': 'Español', 'lang.en': 'English', 'lang.pt': 'Português',
+    'sec.title': 'Alterar senha', 'sec.hint': 'Deve ter entre 6 e 12 caracteres, incluir letra maiúscula, minúscula, pelo menos um número e sem espaços.',
+    'sec.current': 'Senha atual', 'sec.new': 'Nova senha', 'sec.confirm': 'Confirmar nova senha',
+    'sec.mismatch': 'As senhas não coincidem.', 'sec.submit': 'Alterar senha', 'sec.saving': 'Salvando…',
+    'sec.saved': 'Senha atualizada.', 'sec.error': 'Não foi possível alterar a senha.',
+  },
+};

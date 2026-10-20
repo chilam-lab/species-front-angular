@@ -1,27 +1,29 @@
-import { Component, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
+import { I18nService, Lang, TranslatePipe } from 'taxon-shared';
 import { Subscription, filter } from 'rxjs';
 
 /** El título/subtítulo antes eran texto fijo ("Nicho Ecológico...") aunque este
  *  header se muestra en TODAS las rutas (está montado en AppComponent, fuera del
  *  router-outlet) — por eso al entrar a Mi cuenta seguía diciendo "Nicho Ecológico",
  *  dando la impresión de que la navegación te regresaba ahí. Ahora se deriva de la URL. */
+// Claves de traducción (APP_I18N) del título/subtítulo según la sección.
 const SECTION_BY_PREFIX: { prefix: string; title: string; subtitle: string }[] = [
-  { prefix: '/perfil', title: 'Mi cuenta', subtitle: 'Perfil, seguridad y datos cargados' },
-  { prefix: '/login', title: 'Mi cuenta', subtitle: 'Inicia sesión para continuar' },
-  { prefix: '/register', title: 'Mi cuenta', subtitle: 'Crea tu cuenta' },
-  { prefix: '/forgot-password', title: 'Mi cuenta', subtitle: 'Recupera tu contraseña' },
+  { prefix: '/perfil', title: 'app.account', subtitle: 'app.account.sub' },
+  { prefix: '/login', title: 'app.account', subtitle: 'app.login.sub' },
+  { prefix: '/register', title: 'app.account', subtitle: 'app.register.sub' },
+  { prefix: '/forgot-password', title: 'app.account', subtitle: 'app.forgot.sub' },
 ];
-const DEFAULT_SECTION = { title: 'Nicho Ecológico', subtitle: 'Plataforma de exploración de datos ecológicos' };
+const DEFAULT_SECTION = { title: 'app.title', subtitle: 'app.subtitle' };
 
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterLink]
+  imports: [CommonModule, RouterLink, TranslatePipe]
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   @Output() toggleSidebar = new EventEmitter<void>();
@@ -32,6 +34,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private sub?: Subscription;
 
   readonly currentUser$;
+  readonly i18n = inject(I18nService);
+  readonly langs: { code: Lang; label: string }[] = [
+    { code: 'es', label: 'ES' }, { code: 'en', label: 'EN' }, { code: 'pt', label: 'PT' },
+  ];
+
+  setLang(lang: Lang) {
+    this.i18n.setLang(lang);
+  }
 
   constructor(private router: Router, private auth: AuthService) {
     this.currentUser$ = this.auth.currentUser$;

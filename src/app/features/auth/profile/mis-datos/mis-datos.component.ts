@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import * as XLSX from 'xlsx';
+import { I18nService, TranslatePipe } from 'taxon-shared';
 import { MisDatosService } from '../../../../core/mis-datos/mis-datos.service';
 import { DataCollectionRow, OccUploadRow } from '../../../../core/mis-datos/mis-datos.models';
 import { PendingTerceroSelectionService, TerceroRef } from '../../../../core/nicho-rerun/pending-tercero-selection.service';
@@ -12,11 +13,12 @@ type UsoRole = 'ninguno' | 'target' | 'covariable';
 const CHAR_FORMAT = /[`!@#$%^&*()+=\[\]{};'"\\|,<>?~]/;
 const FIXED_COLUMNS = ['occurrenceid', 'decimallatitude', 'decimallongitude', 'eventdate'];
 
+/** Columnas con significado fijo; tipo y comentario son claves de traducción. */
 export const TEMPLATE_COLUMNS = [
-  { name: 'occurrenceid', tipo: 'texto', comentario: 'Recomendado, id propio del registro (solo letras, números, guiones medios y bajos). Si falta, se genera uno automático.' },
-  { name: 'decimallatitude', tipo: 'decimal', comentario: 'Requerido, entre -90 y 90' },
-  { name: 'decimallongitude', tipo: 'decimal', comentario: 'Requerido, entre -180 y 180' },
-  { name: 'eventdate', tipo: 'texto', comentario: 'Opcional, formato: dd/mm/aaaa' },
+  { name: 'occurrenceid', tipoKey: 'data.type.text', comentarioKey: 'data.c.occurrenceid' },
+  { name: 'decimallatitude', tipoKey: 'data.type.decimal', comentarioKey: 'data.c.decimallatitude' },
+  { name: 'decimallongitude', tipoKey: 'data.type.decimal', comentarioKey: 'data.c.decimallongitude' },
+  { name: 'eventdate', tipoKey: 'data.type.text', comentarioKey: 'data.c.eventdate' },
 ];
 
 function isNumeric(value: unknown): boolean {
@@ -24,24 +26,24 @@ function isNumeric(value: unknown): boolean {
   return !isNaN(value as any) && !isNaN(parseFloat(value as string));
 }
 
-function validateRows(rows: OccUploadRow[]): string[] {
+function validateRows(rows: OccUploadRow[], t: (key: string, params: Record<string, number>) => string): string[] {
   const errors: string[] = [];
 
   rows.forEach((item, index) => {
     const line = index + 1;
 
     if (item.occurrenceid && CHAR_FORMAT.test(item.occurrenceid)) {
-      errors.push(`Línea ${line}: occurrenceid tiene caracteres inválidos.`);
+      errors.push(t('data.e.id', { line }));
     }
 
     const lat = parseFloat(item.decimallatitude);
     if (!isNumeric(item.decimallatitude) || lat < -90 || lat > 90) {
-      errors.push(`Línea ${line}: decimallatitude no es un número válido entre -90 y 90.`);
+      errors.push(t('data.e.lat', { line }));
     }
 
     const lon = parseFloat(item.decimallongitude);
     if (!isNumeric(item.decimallongitude) || lon < -180 || lon > 180) {
-      errors.push(`Línea ${line}: decimallongitude no es un número válido entre -180 y 180.`);
+      errors.push(t('data.e.lon', { line }));
     }
   });
 
@@ -51,12 +53,13 @@ function validateRows(rows: OccUploadRow[]): string[] {
 @Component({
   selector: 'app-mis-datos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './mis-datos.component.html',
   styleUrls: ['./mis-datos.component.scss']
 })
 export class MisDatosComponent implements OnInit {
   readonly templateColumns = TEMPLATE_COLUMNS;
+  private readonly i18n = inject(I18nService);
 
   nombreColeccion = '';
   fileName: string | null = null;
@@ -140,7 +143,7 @@ export class MisDatosComponent implements OnInit {
         this.loadingList = false;
       },
       error: () => {
-        this.errorMessage = 'No se pudo cargar la lista de colecciones.';
+        this.errorMessage = this.i18n.t('data.listError');
         this.loadingList = false;
       },
     });
@@ -169,9 +172,9 @@ export class MisDatosComponent implements OnInit {
 
         this.parsedRows = raw.map((row, index) => this.mapRow(row, index));
         this.metadataColumns = Array.from(new Set(this.parsedRows.flatMap((row) => Object.keys(row.metadata))));
-        this.validationErrors = validateRows(this.parsedRows);
+        this.validationErrors = validateRows(this.parsedRows, (k, p) => this.i18n.t(k, p));
       } catch (err) {
-        this.errorMessage = 'No se pudo leer el archivo. Verifica que sea un .csv, .xls o .xlsx válido.';
+        this.errorMessage = this.i18n.t('data.readError');
       }
     };
     reader.readAsArrayBuffer(file);
@@ -179,8 +182,9 @@ export class MisDatosComponent implements OnInit {
 
   downloadTemplate(): void {
     const headers = this.templateColumns.map((col) => col.name);
+    const t = (k: string) => this.i18n.t(k);
     const example = {
-      occurrenceid: 'ejemplo-1',
+      occurrenceid: t('data.example'),
       decimallatitude: '19.4326',
       decimallongitude: '-99.1332',
       eventdate: '01/01/2024',
@@ -188,12 +192,16 @@ export class MisDatosComponent implements OnInit {
 
     const dataSheet = XLSX.utils.json_to_sheet([example], { header: headers });
     const specSheet = XLSX.utils.json_to_sheet(
-      this.templateColumns.map((col) => ({ columna: col.name, tipo: col.tipo, comentario: col.comentario }))
+      this.templateColumns.map((col) => ({
+        [t('data.sheet.column')]: col.name,
+        [t('data.sheet.type')]: t(col.tipoKey),
+        [t('data.sheet.comment')]: t(col.comentarioKey),
+      }))
     );
 
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, dataSheet, 'plantilla');
-    XLSX.utils.book_append_sheet(workbook, specSheet, 'instrucciones');
+    XLSX.utils.book_append_sheet(workbook, dataSheet, t('data.sheet.template'));
+    XLSX.utils.book_append_sheet(workbook, specSheet, t('data.sheet.instructions'));
 
     XLSX.writeFile(workbook, 'plantilla_carga_datos.xlsx');
   }
@@ -235,7 +243,7 @@ export class MisDatosComponent implements OnInit {
     this.misDatos.upload({ nombre_coleccion: this.nombreColeccion.trim(), json_data: this.parsedRows }).subscribe({
       next: () => {
         this.submitting = false;
-        this.successMessage = `Colección "${this.nombreColeccion}" cargada correctamente (${this.parsedRows.length} registros).`;
+        this.successMessage = this.i18n.t('data.uploaded', { name: this.nombreColeccion, n: this.parsedRows.length });
         this.nombreColeccion = '';
         this.fileName = null;
         this.parsedRows = [];
@@ -243,9 +251,16 @@ export class MisDatosComponent implements OnInit {
       },
       error: () => {
         this.submitting = false;
-        this.errorMessage = 'No se pudo cargar la colección. Verifica los datos e intenta de nuevo.';
+        this.errorMessage = this.i18n.t('data.uploadError');
       },
     });
+  }
+
+  /** Fecha y hora cortas en el formato del idioma vigente. */
+  fmtDate(value: string | Date | null | undefined): string {
+    if (!value) return '—';
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString(this.i18n.locale(), { dateStyle: 'short', timeStyle: 'short' });
   }
 
   remove(row: DataCollectionRow): void {
@@ -254,7 +269,7 @@ export class MisDatosComponent implements OnInit {
         this.collections = this.collections.filter((c) => c.id !== row.id);
       },
       error: () => {
-        this.errorMessage = 'No se pudo eliminar la colección.';
+        this.errorMessage = this.i18n.t('data.deleteError');
       },
     });
   }

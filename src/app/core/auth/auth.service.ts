@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { I18nService } from 'taxon-shared';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -23,6 +24,7 @@ const USER_KEY = 'species_user';
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly i18n = inject(I18nService);
   private readonly baseUrl = environment.authBaseUrl;
 
   private readonly currentUserSubject = new BehaviorSubject<AuthUser | null>(this.readStoredUser());
@@ -63,6 +65,8 @@ export class AuthService {
     return this.http.post<AuthApiResponse<{ user: AuthUser }>>(`${this.baseUrl}/login`, body).pipe(
       map((res) => this.assertOk(res)),
       tap((res) => this.persistSession(res.sessionid!, res.session!.user)),
+      // Idioma preferido de la cuenta (si lo tiene) al iniciar sesión.
+      tap((res) => { const l = res.session!.user?.idioma; if (l) this.i18n.setLang(l); }),
       map((res) => res.session!.user),
       catchError((err) => throwError(() => this.toErrorMessage(err)))
     );
@@ -170,6 +174,6 @@ export class AuthService {
     const msg = body?.message;
     if (Array.isArray(msg)) return msg.map((m) => m.message).join(', ');
     if (typeof msg === 'string') return msg;
-    return 'Error de autenticación. Intenta de nuevo.';
+    return this.i18n.t('auth.genericError');
   }
 }

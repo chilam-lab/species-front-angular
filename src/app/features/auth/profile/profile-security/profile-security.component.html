@@ -1,51 +1,51 @@
 <div class="profile-security">
-  <h2>Cambiar contraseña</h2>
+  <h2>{{ 'sec.title' | t }}</h2>
   <p class="hint">
-    Debe tener entre 6 y 12 caracteres, incluir mayúscula, minúscula, al menos un número y sin espacios.
+    {{ 'sec.hint' | t }}
   </p>
 
   <form [formGroup]="form" (ngSubmit)="submit()">
     <label>
-      Contraseña actual
+      {{ 'sec.current' | t }}
       <div class="password-field">
         <input [type]="showOldPassword ? 'text' : 'password'" formControlName="oldpassword" autocomplete="current-password" />
         <button type="button" class="toggle-visibility" (click)="showOldPassword = !showOldPassword"
-                [attr.aria-label]="showOldPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                [attr.aria-label]="(showOldPassword ? 'auth.hidePassword' : 'auth.showPassword') | t">
           <span class="material-icons">{{ showOldPassword ? 'visibility_off' : 'visibility' }}</span>
         </button>
       </div>
     </label>
 
     <label>
-      Nueva contraseña
+      {{ 'sec.new' | t }}
       <div class="password-field">
         <input [type]="showNewPassword ? 'text' : 'password'" formControlName="newpassword" autocomplete="new-password" />
         <button type="button" class="toggle-visibility" (click)="showNewPassword = !showNewPassword"
-                [attr.aria-label]="showNewPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                [attr.aria-label]="(showNewPassword ? 'auth.hidePassword' : 'auth.showPassword') | t">
           <span class="material-icons">{{ showNewPassword ? 'visibility_off' : 'visibility' }}</span>
         </button>
       </div>
     </label>
 
     <label>
-      Confirmar nueva contraseña
+      {{ 'sec.confirm' | t }}
       <div class="password-field">
         <input [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmNewPassword" autocomplete="new-password" />
         <button type="button" class="toggle-visibility" (click)="showConfirmPassword = !showConfirmPassword"
-                [attr.aria-label]="showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                [attr.aria-label]="(showConfirmPassword ? 'auth.hidePassword' : 'auth.showPassword') | t">
           <span class="material-icons">{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</span>
         </button>
       </div>
     </label>
     <div class="field-error" *ngIf="form.errors?.['passwordsMismatch'] && form.controls['confirmNewPassword'].touched">
-      Las contraseñas no coinciden.
+      {{ 'sec.mismatch' | t }}
     </div>
 
     <div class="field-success" *ngIf="successMessage">{{ successMessage }}</div>
     <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
     <button type="submit" [disabled]="submitting">
-      {{ submitting ? 'Guardando…' : 'Cambiar contraseña' }}
+      {{ (submitting ? 'sec.saving' : 'sec.submit') | t }}
     </button>
   </form>
 </div>

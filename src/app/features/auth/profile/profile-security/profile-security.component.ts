@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { I18nService, TranslatePipe } from 'taxon-shared';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { AuthService } from '../../../../core/auth/auth.service';
@@ -12,11 +13,12 @@ function passwordsMatchValidator(group: FormGroup): ValidationErrors | null {
 @Component({
   selector: 'app-profile-security',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './profile-security.component.html',
   styleUrls: ['./profile-security.component.scss']
 })
 export class ProfileSecurityComponent {
+  readonly i18n = inject(I18nService);
   form: FormGroup;
   submitting = false;
   successMessage: string | null = null;
@@ -54,12 +56,12 @@ export class ProfileSecurityComponent {
     this.auth.changePassword({ email: user.email, oldpassword: oldpassword!, newpassword: newpassword! }).subscribe({
       next: () => {
         this.submitting = false;
-        this.successMessage = 'Contraseña actualizada correctamente.';
+        this.successMessage = this.i18n.t('sec.saved');
         this.form.reset();
       },
       error: (msg) => {
         this.submitting = false;
-        this.errorMessage = typeof msg === 'string' ? msg : 'No se pudo cambiar la contraseña.';
+        this.errorMessage = typeof msg === 'string' ? msg : this.i18n.t('sec.error');
       },
     });
   }

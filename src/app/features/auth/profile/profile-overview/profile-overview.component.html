@@ -1,31 +1,39 @@
 <div class="profile-overview" *ngIf="user$ | async as user">
   <dl class="read-only">
-    <dt>Correo</dt>
+    <dt>{{ 'prof.email' | t }}</dt>
     <dd>{{ user.email }}</dd>
 
-    <dt *ngIf="user.fecha_registro">Miembro desde</dt>
-    <dd *ngIf="user.fecha_registro">{{ user.fecha_registro | date:'longDate' }}</dd>
+    <dt *ngIf="user.fecha_registro">{{ 'prof.memberSince' | t }}</dt>
+    <dd *ngIf="user.fecha_registro">{{ formatDate(user.fecha_registro) }}</dd>
   </dl>
 
   <form [formGroup]="form" (ngSubmit)="submit()">
     <label>
-      Nombre
+      {{ 'prof.name' | t }}
       <input type="text" formControlName="name" autocomplete="name" />
     </label>
     <div class="field-error" *ngIf="form.controls['name'].touched && form.controls['name'].invalid">
-      El nombre es obligatorio.
+      {{ 'prof.nameRequired' | t }}
     </div>
 
     <label>
-      Procedencia
+      {{ 'prof.origin' | t }}
       <input type="text" formControlName="procedencia" />
     </label>
+
+    <label>
+      {{ 'prof.language' | t }}
+      <select formControlName="idioma">
+        <option *ngFor="let l of langs" [value]="l">{{ 'lang.' + l | t }}</option>
+      </select>
+    </label>
+    <p class="hint">{{ 'prof.languageHint' | t }}</p>
 
     <div class="field-success" *ngIf="successMessage">{{ successMessage }}</div>
     <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
     <button type="submit" [disabled]="submitting">
-      {{ submitting ? 'Guardando…' : 'Guardar cambios' }}
+      {{ (submitting ? 'prof.saving' : 'prof.save') | t }}
     </button>
   </form>
 </div>

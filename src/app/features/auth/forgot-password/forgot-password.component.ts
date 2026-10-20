@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { I18nService, TranslatePipe } from 'taxon-shared';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -7,11 +8,12 @@ import { AuthService } from '../../../core/auth/auth.service';
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './forgot-password.component.html',
   styleUrls: ['./forgot-password.component.scss']
 })
 export class ForgotPasswordComponent {
+  private readonly i18n = inject(I18nService);
   form: FormGroup;
   submitting = false;
   successMessage: string | null = null;
@@ -38,11 +40,11 @@ export class ForgotPasswordComponent {
     this.auth.recoverPassword(email!).subscribe({
       next: () => {
         this.submitting = false;
-        this.successMessage = 'Revisa tu correo: te enviamos una contraseña temporal.';
+        this.successMessage = this.i18n.t('auth.forgot.success');
       },
       error: (msg) => {
         this.submitting = false;
-        this.errorMessage = typeof msg === 'string' ? msg : 'No se pudo procesar la solicitud.';
+        this.errorMessage = typeof msg === 'string' ? msg : this.i18n.t('auth.forgot.error');
       },
     });
   }

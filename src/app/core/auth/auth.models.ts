@@ -4,6 +4,8 @@ export interface AuthUser {
   email: string;
   fecha_registro?: string;
   procedencia?: string;
+  /** Idioma preferido guardado en la cuenta ('es' | 'en' | 'pt'). */
+  idioma?: 'es' | 'en' | 'pt' | null;
 }
 
 export interface LoginPayload {
@@ -29,6 +31,7 @@ export interface ChangePasswordPayload {
 export interface UpdateProfilePayload {
   name: string;
   procedencia: string;
+  idioma?: 'es' | 'en' | 'pt';
 }
 
 /** Forma cruda de la respuesta de auth_backend: siempre trae `status` (0 = ok, 1 = error). */

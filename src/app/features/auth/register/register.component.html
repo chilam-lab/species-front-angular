@@ -1,61 +1,61 @@
 <div class="auth-card">
-  <h1>Crear cuenta</h1>
+  <h1>{{ 'auth.register.title' | t }}</h1>
 
   <div *ngIf="success; else formTpl" class="success-box">
-    Cuenta creada correctamente. Ya puedes <a routerLink="/login">iniciar sesión</a>.
+    {{ 'auth.register.success' | t }} <a routerLink="/login">{{ 'auth.register.loginLink' | t }}</a>.
   </div>
 
   <ng-template #formTpl>
     <form [formGroup]="form" (ngSubmit)="submit()">
       <label>
-        Nombre
+        {{ 'auth.name' | t }}
         <input type="text" formControlName="nombre" autocomplete="name" />
       </label>
 
       <label>
-        Correo
+        {{ 'auth.email' | t }}
         <input type="email" formControlName="email" autocomplete="email" />
       </label>
       <div class="field-error" *ngIf="form.controls['email'].touched && form.controls['email'].invalid">
-        Ingresa un correo válido.
+        {{ 'auth.emailInvalid' | t }}
       </div>
 
       <label>
-        Procedencia (institución, opcional)
+        {{ 'auth.register.origin' | t }}
         <input type="text" formControlName="procedencia" />
       </label>
 
       <label>
-        Contraseña
+        {{ 'auth.password' | t }}
         <div class="password-field">
           <input [type]="showPassword ? 'text' : 'password'" formControlName="password" autocomplete="new-password" />
           <button type="button" class="toggle-visibility" (click)="showPassword = !showPassword"
-                  [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  [attr.aria-label]="(showPassword ? 'auth.hidePassword' : 'auth.showPassword') | t">
             <span class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
           </button>
         </div>
       </label>
       <div class="field-error" *ngIf="form.controls['password'].touched && form.controls['password'].invalid">
-        6-12 caracteres, con mayúscula, minúscula y un número, sin espacios.
+        {{ 'auth.register.passwordRule' | t }}
       </div>
 
       <label class="checkbox">
         <input type="checkbox" formControlName="aviso" />
-        Acepto el aviso de privacidad y términos de uso.
+        {{ 'auth.terms' | t }}
       </label>
       <div class="field-error" *ngIf="form.controls['aviso'].touched && form.controls['aviso'].invalid">
-        Debes aceptar el aviso de privacidad y los términos de uso para continuar.
+        {{ 'auth.termsRequired' | t }}
       </div>
 
       <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
       <button type="submit" [disabled]="submitting">
-        {{ submitting ? 'Creando cuenta…' : 'Crear cuenta' }}
+        {{ (submitting ? 'auth.register.submitting' : 'auth.register.submit') | t }}
       </button>
     </form>
 
     <p class="auth-links">
-      ¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a>
+      {{ 'auth.register.haveAccount' | t }} <a routerLink="/login">{{ 'auth.register.loginLink2' | t }}</a>
     </p>
   </ng-template>
 </div>

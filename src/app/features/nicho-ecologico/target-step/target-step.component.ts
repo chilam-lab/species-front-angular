@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +8,7 @@ import { RegionSelectorComponent } from 'region-selector';
 import { TaxonSelectorComponent } from 'taxon-selector';
 import { TaxonNavigatorComponent } from 'taxon-navigator';
 import { TaxonScopeComponent } from 'taxon-scope';
+import { I18nService, TranslatePipe } from 'taxon-shared';
 
 import { CellOccRecord, OccService, OccSummary } from '../../../services/occ.service';
 import { MisDatosService } from '../../../core/mis-datos/mis-datos.service';
@@ -20,12 +21,14 @@ import { TaxonSelectionPayload } from '../state/nicho-analysis.models';
   standalone: true,
   imports: [
     CommonModule, FormsModule, MapaMaplibreComponent, RegionSelectorComponent,
-    TaxonSelectorComponent, TaxonNavigatorComponent, TaxonScopeComponent
+    TaxonSelectorComponent, TaxonNavigatorComponent, TaxonScopeComponent, TranslatePipe
   ],
   templateUrl: './target-step.component.html',
   styleUrls: ['./target-step.component.scss']
 })
 export class TargetStepComponent implements OnInit {
+  private readonly i18n = inject(I18nService);
+
   constructor(
     public state: NicheAnalysisStateService,
     private occService: OccService,
@@ -180,7 +183,7 @@ export class TargetStepComponent implements OnInit {
       this.state.occValues = [];
       this.state.occSummary = null;
       this.state.runStamp++;
-      this.state.showValidationMessages(['Ocurrió un error al consultar datos de ocurrencia.']);
+      this.state.showValidationMessages([this.i18n.t('ni.t.occError')]);
       this.state.isAnalyzingOcc = false;
     };
 
@@ -227,7 +230,7 @@ export class TargetStepComponent implements OnInit {
     if (!this.state.gridId) return;
     if (this.state.targetTercero) {
       this.cellPanel = { cellId, loading: false, truncated: false, records: [],
-        error: 'El detalle de registros no está disponible para colecciones propias.' };
+        error: this.i18n.t('ni.t.terceroNoDetail') };
       return;
     }
     this.cellPanel = { cellId, loading: true, error: null, truncated: false, records: [] };
@@ -245,7 +248,7 @@ export class TargetStepComponent implements OnInit {
       error: () => {
         if (this.cellPanel?.cellId !== cellId) return;
         this.cellPanel = { cellId, loading: false, truncated: false, records: [],
-          error: 'No se pudieron obtener los registros de la celda.' };
+          error: this.i18n.t('ni.t.cellError') };
       },
     });
   }
@@ -254,18 +257,7 @@ export class TargetStepComponent implements OnInit {
   tipoRegistro(tipo: string | null): string {
     if (!tipo) return '—';
     const key = tipo.replace(/_/g, '').toLowerCase();
-    const labels: Record<string, string> = {
-      humanobservation: 'Observación',
-      machineobservation: 'Observación automática',
-      preservedspecimen: 'Ejemplar preservado',
-      livingspecimen: 'Ejemplar vivo',
-      fossilspecimen: 'Fósil',
-      materialsample: 'Muestra de material',
-      materialcitation: 'Cita bibliográfica',
-      occurrence: 'Ocurrencia',
-      observation: 'Observación',
-    };
-    return labels[key] ?? tipo;
+    return this.i18n.tOr(`ni.rec.${key}`, tipo);
   }
 
   closeCellPanel(): void {

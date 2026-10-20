@@ -1,48 +1,48 @@
 <div class="auth-card">
-  <h1>Iniciar sesión</h1>
+  <h1>{{ 'auth.login.title' | t }}</h1>
 
   <form [formGroup]="form" (ngSubmit)="submit()">
     <label>
-      Correo
+      {{ 'auth.email' | t }}
       <input type="email" formControlName="email" autocomplete="email" />
     </label>
     <div class="field-error" *ngIf="form.controls['email'].touched && form.controls['email'].invalid">
-      Ingresa un correo válido.
+      {{ 'auth.emailInvalid' | t }}
     </div>
 
     <label>
-      Contraseña
+      {{ 'auth.password' | t }}
       <div class="password-field">
         <input [type]="showPassword ? 'text' : 'password'" formControlName="password" autocomplete="current-password" />
         <button type="button" class="toggle-visibility" (click)="showPassword = !showPassword"
-                [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                [attr.aria-label]="(showPassword ? 'auth.hidePassword' : 'auth.showPassword') | t">
           <span class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
         </button>
       </div>
     </label>
     <div class="field-error" *ngIf="form.controls['password'].touched && form.controls['password'].invalid">
-      La contraseña es obligatoria.
+      {{ 'auth.passwordRequired' | t }}
     </div>
 
     <label class="checkbox">
       <input type="checkbox" formControlName="aviso" />
-      Acepto el aviso de privacidad y términos de uso.
+      {{ 'auth.terms' | t }}
     </label>
     <div class="field-error" *ngIf="form.controls['aviso'].touched && form.controls['aviso'].invalid">
-      Debes aceptar el aviso de privacidad y los términos de uso para continuar.
+      {{ 'auth.termsRequired' | t }}
     </div>
 
     <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
     <button type="submit" [disabled]="submitting">
-      {{ submitting ? 'Ingresando…' : 'Ingresar' }}
+      {{ (submitting ? 'auth.login.submitting' : 'auth.login.submit') | t }}
     </button>
   </form>
 
   <p class="auth-links">
-    ¿No tienes cuenta? <a routerLink="/register">Regístrate</a>
+    {{ 'auth.login.noAccount' | t }} <a routerLink="/register">{{ 'auth.login.registerLink' | t }}</a>
   </p>
   <p class="auth-links">
-    <a routerLink="/forgot-password">¿Olvidaste tu contraseña?</a>
+    <a routerLink="/forgot-password">{{ 'auth.login.forgot' | t }}</a>
   </p>
 </div>

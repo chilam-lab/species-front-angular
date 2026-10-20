@@ -1,22 +1,33 @@
 <header class="app-header">
-  <button class="hamburger" (click)="onToggleClick()" aria-label="Mostrar u ocultar menú">☰</button>
+  <button class="hamburger" (click)="onToggleClick()" [attr.aria-label]="'app.menu' | t">☰</button>
   <div class="titles">
-    <h1>{{ title }}</h1>
-    <h2>{{ subtitle }}</h2>
+    <h1>{{ title | t }}</h1>
+    <h2>{{ subtitle | t }}</h2>
   </div>
 
-  <!-- Cuenta: nombre si hay sesión; si no, accesos a iniciar sesión / registrarse. -->
-  <div class="account" *ngIf="(currentUser$ | async) as user; else guest">
-    <a routerLink="/perfil" class="account-link" [title]="user.email">
-      <span class="material-icons" aria-hidden="true">account_circle</span>
-      <span class="account-name">{{ user.name }}</span>
-    </a>
-  </div>
-  <ng-template #guest>
-    <div class="account guest">
-      <span class="guest-hint">Sin sesión</span>
-      <a routerLink="/login" class="btn-link">Iniciar sesión</a>
-      <a routerLink="/register" class="btn-link primary">Registrarse</a>
+  <div class="header-right">
+    <!-- Idioma: disponible con o sin sesión; se recuerda en el navegador
+         (y en el perfil si hay sesión, desde Mi cuenta). -->
+    <div class="lang-switch" role="group" [attr.aria-label]="'app.language' | t">
+      <button type="button" *ngFor="let l of langs"
+              [class.active]="i18n.lang() === l.code"
+              [attr.aria-pressed]="i18n.lang() === l.code"
+              (click)="setLang(l.code)">{{ l.label }}</button>
     </div>
-  </ng-template>
+
+    <!-- Cuenta: nombre si hay sesión; si no, accesos a iniciar sesión / registrarse. -->
+    <div class="account" *ngIf="(currentUser$ | async) as user; else guest">
+      <a routerLink="/perfil" class="account-link" [title]="user.email">
+        <span class="material-icons" aria-hidden="true">account_circle</span>
+        <span class="account-name">{{ user.name }}</span>
+      </a>
+    </div>
+    <ng-template #guest>
+      <div class="account guest">
+        <span class="guest-hint">{{ 'app.noSession' | t }}</span>
+        <a routerLink="/login" class="btn-link">{{ 'app.login' | t }}</a>
+        <a routerLink="/register" class="btn-link primary">{{ 'app.register' | t }}</a>
+      </div>
+    </ng-template>
+  </div>
 </header>

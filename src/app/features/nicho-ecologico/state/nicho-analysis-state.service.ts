@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
   CovariableSource,
@@ -11,9 +11,11 @@ import {
   TerceroSelection,
   TargetFilters,
   DEFAULT_TARGET_FILTERS,
+  SOURCE_LABELS,
   CellScoreDetail,
   ValidationResult,
 } from './nicho-analysis.models';
+import { I18nService } from 'taxon-shared';
 import { environment } from '../../../../environments/environment';
 import type { TaxonSelectorSnapshot } from 'taxon-selector';
 import type { TaxonNavigatorSnapshot } from 'taxon-navigator';
@@ -33,7 +35,15 @@ export class NicheAnalysisStateService {
   static readonly WORLDCLIM_SOURCE_ID = 2;
   static readonly DEM_SOURCE_ID = 4;
 
+  readonly i18n = inject(I18nService);
+
   constructor(private http: HttpClient) {}
+
+  /** Nombre de una fuente de datos ("Mis datos" traducido; "Fuente #n" si no se conoce). */
+  sourceLabel(id: number | string | null | undefined): string {
+    if (id === 'terceros') return this.i18n.t('ni.myData');
+    return (id != null && SOURCE_LABELS[id]) || this.i18n.t('ni.source', { id: id ?? '?' });
+  }
 
   // ===== Target =====
   targetSourceId: number | null = null;
@@ -65,8 +75,8 @@ export class NicheAnalysisStateService {
     const { fecha_inicio: ini, fecha_fin: fin } = this.targetFilters;
     const maxYear = new Date().getFullYear();
     const bad = (y: number | null) => y !== null && (!Number.isInteger(y) || y < 1 || y > maxYear);
-    if (bad(ini) || bad(fin)) errs.push(`El filtro de fecha solo acepta años completos (ej. 1990), hasta ${maxYear}.`);
-    if (ini !== null && fin !== null && ini > fin) errs.push('El año de inicio no puede ser mayor que el de fin.');
+    if (bad(ini) || bad(fin)) errs.push(this.i18n.t('ni.v.year', { max: maxYear }));
+    if (ini !== null && fin !== null && ini > fin) errs.push(this.i18n.t('ni.v.yearOrder'));
     return errs;
   }
 
@@ -276,9 +286,9 @@ export class NicheAnalysisStateService {
 
   collectValidation(gridId: number | null, splist: SplistItem[]): string[] {
     const msgs: string[] = [];
-    if (!gridId || gridId <= 0) msgs.push('Selecciona una región y una resolución (gridId inválido).');
+    if (!gridId || gridId <= 0) msgs.push(this.i18n.t('ni.v.grid'));
     if (splist.length === 0 && !this.targetTercero) {
-      msgs.push('Selecciona al menos un taxón en el navegador, o una de tus colecciones cargadas.');
+      msgs.push(this.i18n.t('ni.v.taxon'));
     }
     return msgs;
   }
@@ -309,7 +319,7 @@ export class NicheAnalysisStateService {
     const start = this.covarNavigatorState?.states?.[sourceId]?.parentTrail?.[0];
     const label = (start?.label ?? '').toString().trim();
     if (!label) return null;
-    return start?.level ? `${start.level}: ${label}` : label;
+    return start?.level ? `${this.i18n.level(start.level)}: ${label}` : label;
   }
 
   buildRelationQuery(q: string, id_source: number): RelationQuery {
@@ -358,7 +368,7 @@ export class NicheAnalysisStateService {
     const usePreTarget = this.usingPreloadedTarget;
     const gridId = usePreTarget ? pre!.grid_id : this.gridId;
     if (!gridId) {
-      this.showValidationMessages(['Selecciona región y resolución en Target.']);
+      this.showValidationMessages([this.i18n.t('ni.v.gridTarget')]);
       return null;
     }
 
@@ -366,8 +376,8 @@ export class NicheAnalysisStateService {
     const covars = this.usingPreloadedCovars ? pre!.covars : this.buildCovarsQueries();
 
     const errs: string[] = [];
-    if (target.length === 0) errs.push('Selecciona al menos un taxón en Target, o una de tus colecciones cargadas.');
-    if (covars.length === 0) errs.push('Selecciona al menos un taxón o una colección propia en Covariables.');
+    if (target.length === 0) errs.push(this.i18n.t('ni.v.target'));
+    if (covars.length === 0) errs.push(this.i18n.t('ni.v.covars'));
     if (errs.length) {
       this.showValidationMessages(errs);
       return null;

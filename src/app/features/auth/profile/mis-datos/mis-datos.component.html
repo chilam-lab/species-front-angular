@@ -1,55 +1,49 @@
 <div class="mis-datos">
-  <h2>Cargar nueva colección de datos</h2>
-  <p class="hint">
-    El archivo debe estar en formato CSV, XLS o XLSX. La primera fila debe traer los encabezados.
-    Solo las columnas listadas abajo tienen un significado fijo:
-  </p>
+  <h2>{{ 'data.title' | t }}</h2>
+  <p class="hint">{{ 'data.hint' | t }}</p>
 
   <button type="button" class="secondary" (click)="downloadTemplate()">
-    Descargar plantilla de referencia (.xlsx)
+    {{ 'data.template' | t }}
   </button>
 
   <table class="spec">
     <thead>
       <tr>
-        <th>Nombre columna</th>
-        <th>Tipo dato</th>
-        <th>Comentario</th>
+        <th>{{ 'data.col.name' | t }}</th>
+        <th>{{ 'data.col.type' | t }}</th>
+        <th>{{ 'data.col.comment' | t }}</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let col of templateColumns">
         <td>{{ col.name }}</td>
-        <td>{{ col.tipo }}</td>
-        <td>{{ col.comentario }}</td>
+        <td>{{ col.tipoKey | t }}</td>
+        <td>{{ col.comentarioKey | t }}</td>
       </tr>
     </tbody>
   </table>
 
-  <p class="hint">
-    Puedes incluir cualquier otra columna (taxonomía, atributos propios, etc.); se conservará
-    tal cual como metadato de contexto del registro, sin validarse ni exigirse.
-  </p>
+  <p class="hint">{{ 'data.extraHint' | t }}</p>
 
   <p class="hint" *ngIf="metadataColumns.length > 0">
-    Columnas adicionales detectadas en el archivo: {{ metadataColumns.join(', ') }}
+    {{ 'data.extraCols' | t: { cols: metadataColumns.join(', ') } }}
   </p>
 
   <div class="upload-form">
     <label>
-      Nombre de la colección
+      {{ 'data.name' | t }}
       <input type="text" [(ngModel)]="nombreColeccion" name="nombreColeccion" />
     </label>
 
     <label>
-      Archivo (.csv, .xls, .xlsx)
+      {{ 'data.file' | t }}
       <input type="file" accept=".csv,.xls,.xlsx" (change)="onFileSelected($event)" />
     </label>
 
-    <p *ngIf="fileName">Archivo seleccionado: {{ fileName }} ({{ parsedRows.length }} filas)</p>
+    <p *ngIf="fileName">{{ 'data.selected' | t: { name: fileName, n: parsedRows.length } }}</p>
 
     <div class="validation-errors" *ngIf="validationErrors.length > 0">
-      <p>Corrige los siguientes errores antes de cargar:</p>
+      <p>{{ 'data.fixErrors' | t }}</p>
       <ul>
         <li *ngFor="let err of validationErrors">{{ err }}</li>
       </ul>
@@ -59,22 +53,22 @@
     <div class="field-error" *ngIf="errorMessage">{{ errorMessage }}</div>
 
     <button type="button" [disabled]="!canSubmit || submitting" (click)="submit()">
-      {{ submitting ? 'Cargando…' : 'Cargar colección' }}
+      {{ (submitting ? 'data.uploading' : 'data.upload') | t }}
     </button>
   </div>
 
-  <h2 class="collections-title">Mis colecciones cargadas</h2>
+  <h2 class="collections-title">{{ 'data.mine' | t }}</h2>
 
-  <div *ngIf="loadingList">Cargando…</div>
+  <div *ngIf="loadingList">{{ 'ni.loading' | t }}</div>
 
   <table *ngIf="!loadingList && collections.length > 0">
     <thead>
       <tr>
-        <th>Uso en Nicho Ecológico</th>
-        <th>Nombre</th>
-        <th>Fecha de carga</th>
-        <th>Fecha de expiración</th>
-        <th>Estatus</th>
+        <th>{{ 'data.use' | t }}</th>
+        <th>{{ 'data.colName' | t }}</th>
+        <th>{{ 'data.loaded' | t }}</th>
+        <th>{{ 'data.expires' | t }}</th>
+        <th>{{ 'data.status' | t }}</th>
         <th></th>
       </tr>
     </thead>
@@ -83,31 +77,31 @@
         <td class="uso-radios">
           <label>
             <input type="radio" [name]="'uso-' + col.id" [checked]="getRole(col.id) === 'ninguno'" (change)="setRole(col.id, 'ninguno')" />
-            Ninguno
+            {{ 'data.role.none' | t }}
           </label>
           <label>
             <input type="radio" [name]="'uso-' + col.id" [checked]="getRole(col.id) === 'target'" (change)="setRole(col.id, 'target')" />
-            Target
+            {{ 'data.role.target' | t }}
           </label>
           <label>
             <input type="radio" [name]="'uso-' + col.id" [checked]="getRole(col.id) === 'covariable'" (change)="setRole(col.id, 'covariable')" />
-            Covariable
+            {{ 'data.role.covar' | t }}
           </label>
         </td>
         <td>{{ col.nombre_datos }}</td>
-        <td>{{ col.fecha_carga | date:'short' }}</td>
-        <td>{{ col.fecha_expiracion | date:'short' }}</td>
+        <td>{{ fmtDate(col.fecha_carga) }}</td>
+        <td>{{ fmtDate(col.fecha_expiracion) }}</td>
         <td>{{ col.estatus }}</td>
         <td>
-          <button type="button" class="danger" (click)="remove(col)">Eliminar</button>
+          <button type="button" class="danger" (click)="remove(col)">{{ 'ni.delete' | t }}</button>
         </td>
       </tr>
     </tbody>
   </table>
 
   <button type="button" class="secondary" *ngIf="!loadingList && collections.length > 0" [disabled]="!hasSelection" (click)="usarMiSeleccion()">
-    Usar mi selección en Nicho Ecológico →
+    {{ 'data.useSelection' | t }}
   </button>
 
-  <p *ngIf="!loadingList && collections.length === 0">Todavía no has cargado ninguna colección.</p>
+  <p *ngIf="!loadingList && collections.length === 0">{{ 'data.empty' | t }}</p>
 </div>

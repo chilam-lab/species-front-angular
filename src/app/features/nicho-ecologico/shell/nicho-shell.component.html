@@ -3,8 +3,8 @@
     <nicho-stepper [steps]="steps" (stepClick)="onStepClick($event)"></nicho-stepper>
 
     <div class="nicho-shell__step-meta">
-      <h1>{{ currentStepMeta.title }}</h1>
-      <p>{{ currentStepMeta.description }}</p>
+      <h1>{{ currentStepMeta.title | t }}</h1>
+      <p>{{ currentStepMeta.description | t }}</p>
     </div>
   </div>
 
