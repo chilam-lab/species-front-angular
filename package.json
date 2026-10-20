@@ -31,7 +31,7 @@
     "tabla-species": "file:local-packages/tabla-species-0.0.6.tgz",
     "taxon-navigator": "file:local-packages/taxon-navigator-0.0.4.tgz",
     "taxon-scope": "file:local-packages/taxon-scope-0.0.1.tgz",
-    "taxon-selector": "file:local-packages/taxon-selector-0.0.10.tgz",
+    "taxon-selector": "file:local-packages/taxon-selector-0.0.11.tgz",
     "taxon-shared": "file:local-packages/taxon-shared-0.0.4.tgz",
     "tslib": "^2.3.0",
     "xlsx": "^0.18.5",
