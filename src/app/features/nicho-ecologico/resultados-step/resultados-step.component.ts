@@ -112,6 +112,21 @@ export class ResultadosStepComponent {
     return n ? `${base} · ${this.i18n.t('ni.r.cellsDeleted', { n })}` : base;
   }
 
+  /** Partes de un resumen "a · b · c" para mostrarlas como etiquetas. */
+  chips(text: string | null | undefined): string[] {
+    return String(text ?? '').split(' · ').map((x) => x.trim()).filter(Boolean);
+  }
+
+  /** Color de la etiqueta de cada fuente en el resumen. */
+  sourceTone(label: string): string {
+    const l = (label || '').toLowerCase();
+    if (l.includes('snib')) return 'snib';
+    if (l.includes('gbif')) return 'gbif';
+    if (l.includes('worldclim')) return 'wc';
+    if (l.includes('dem')) return 'dem';
+    return 'own';
+  }
+
   get analysisOptionsSummary(): string {
     const t = (k: string, p?: Record<string, string | number>) => this.i18n.t(k, p);
     const yn = (b: boolean) => t(b ? 'ni.yes' : 'ni.no');
