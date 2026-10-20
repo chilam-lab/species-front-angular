@@ -85,8 +85,51 @@
         [controlScoreLayer]="true"
         [loading]="state.isAnalyzingNiche"
         (epsScrRelReady)="onEpsScrRelReady($event)"
-        (epsScrExtrasReady)="onEpsScrExtrasReady($event)">
+        (epsScrExtrasReady)="onEpsScrExtrasReady($event)"
+        [cellSelectMode]="!!state.uuidNiche && !state.isAnalyzingNiche"
+        (cellClick)="onResultCellClick($event)">
       </app-mapa-maplibre>
+
+      <aside class="cell-panel" *ngIf="cellPanel as p" role="dialog" [attr.aria-label]="'Celda ' + p.cellId">
+        <header>
+          <h4>Celda {{ p.cellId }}</h4>
+          <button type="button" class="close" (click)="closeCellPanel()" aria-label="Cerrar">×</button>
+        </header>
+        <div class="body">
+          <p *ngIf="p.loading" class="muted">Cargando detalle…</p>
+          <p *ngIf="p.error" class="muted">{{ p.error }}</p>
+          <ng-container *ngIf="p.detail as d">
+            <div class="cell-stats">
+              <span *ngIf="d.mapa_prob && d.probabilidad !== null">
+                <strong>Probabilidad: {{ d.probabilidad * 100 | number:'1.2-2' }}%</strong>
+              </span>
+              <span *ngIf="!d.mapa_prob && d.valor_mapa !== null">
+                <strong>Score de la celda: {{ d.valor_mapa | number:'1.2-2' }}</strong>
+              </span>
+              <span *ngIf="d.apriori !== null">A priori: {{ d.apriori | number:'1.2-2' }}</span>
+              <span>Suma de scores: {{ d.suma_scores | number:'1.2-2' }}</span>
+              <span class="pos">{{ d.positivas }} a favor</span>
+              <span class="neg">{{ d.negativas }} en contra</span>
+            </div>
+            <p *ngIf="!d.covariables.length" class="muted">
+              Ninguna covariable del análisis está presente en esta celda.
+            </p>
+            <table *ngIf="d.covariables.length">
+              <thead>
+                <tr><th>Covariable</th><th>Fuente</th><th>Score</th><th>nij / nj</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of d.covariables">
+                  <td>{{ covarLabel(c.metadata_covars) }}</td>
+                  <td>{{ sourceLabel(c.idsource_covars) }}</td>
+                  <td [class.pos]="c.score >= 0" [class.neg]="c.score < 0">{{ c.score | number:'1.2-2' }}</td>
+                  <td class="nowrap">{{ c.nij }} / {{ c.nj }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </ng-container>
+        </div>
+      </aside>
     </div>
   </div>
 

@@ -11,6 +11,7 @@ import {
   TerceroSelection,
   TargetFilters,
   DEFAULT_TARGET_FILTERS,
+  CellScoreDetail,
 } from './nicho-analysis.models';
 import { environment } from '../../../../environments/environment';
 import type { TaxonSelectorSnapshot } from 'taxon-selector';
@@ -203,6 +204,11 @@ export class NicheAnalysisStateService {
         },
         error: () => { this.regionName = null; }
       });
+  }
+
+  /** Detalle de una celda del mapa de Resultados (lee el análisis en Redis). */
+  getCellScoreDetail(uuid: string, cellId: number) {
+    return this.http.post<CellScoreDetail>(`${environment.apiBaseUrl}/mdf/getEpsScrCellDetail`, { uuid, cell_id: cellId });
   }
 
   showValidationMessages(msgs: string[]): void {

@@ -78,3 +78,26 @@ export const SOURCE_LABELS: Record<number | string, string> = {
   4: 'DEM',
   terceros: 'Mis datos'
 };
+
+/** Detalle de una celda del mapa de Resultados (getEpsScrCellDetail). */
+export type CellScoreDetail = {
+  cell_id: number;
+  valor_mapa: number | null;
+  apriori: number | null;
+  mapa_prob: boolean;
+  probabilidad: number | null;
+  suma_scores: number;
+  positivas: number;
+  negativas: number;
+  covariables: {
+    idsource_covars: number | string;
+    id_covars: number | string;
+    metadata_covars: any;
+    metadata_target: any;
+    score: number;
+    epsilon: number;
+    nij: number;
+    nj: number;
+    aporte: number;
+  }[];
+};

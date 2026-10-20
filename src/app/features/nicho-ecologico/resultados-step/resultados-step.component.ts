@@ -8,7 +8,7 @@ import { TablaSpeciesComponent } from 'tabla-species';
 import { HistogramChartComponent } from 'histogram-chart';
 
 import { NicheAnalysisStateService } from '../state/nicho-analysis-state.service';
-import { SOURCE_LABELS, TargetFilters } from '../state/nicho-analysis.models';
+import { CellScoreDetail, SOURCE_LABELS, TargetFilters } from '../state/nicho-analysis.models';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
@@ -111,6 +111,46 @@ export class ResultadosStepComponent {
     return parts.join(' · ');
   }
 
+  /** Panel con el detalle de la celda seleccionada en el mapa de Resultados. */
+  cellPanel: { cellId: number; loading: boolean; error: string | null; detail: CellScoreDetail | null } | null = null;
+
+  onResultCellClick(ev: { cell_id: number | string }): void {
+    const uuid = this.state.uuidNiche;
+    if (!uuid) return;
+    const cellId = Number(ev.cell_id);
+    this.cellPanel = { cellId, loading: true, error: null, detail: null };
+    this.state.getCellScoreDetail(uuid, cellId).subscribe({
+      next: (detail) => {
+        if (this.cellPanel?.cellId !== cellId) return;
+        this.cellPanel = { cellId, loading: false, error: null, detail };
+      },
+      error: (err) => {
+        if (this.cellPanel?.cellId !== cellId) return;
+        const msg = err?.status === 404
+          ? 'El análisis expiró (dura 15 minutos); vuelve a ejecutarlo para ver el detalle.'
+          : 'No se pudo obtener el detalle de la celda.';
+        this.cellPanel = { cellId, loading: false, error: msg, detail: null };
+      },
+    });
+  }
+
+  closeCellPanel(): void {
+    this.cellPanel = null;
+  }
+
+  /** Nombre legible de una covariable (mismo criterio que la tabla de resultados). */
+  covarLabel(meta: any): string {
+    const name = meta?.especie ?? meta?.species ?? meta?.label ?? meta?.layer ?? meta?.descripcion ?? meta?.nombre_datos;
+    if (name) return String(name);
+    const levels = ['genero', 'familia', 'orden', 'clase', 'phylum', 'reino'];
+    const lvl = levels.find((l) => meta?.[l]);
+    return lvl ? `${meta[lvl]} (${lvl})` : '—';
+  }
+
+  sourceLabel(id: number | string): string {
+    return SOURCE_LABELS[id] ?? `Fuente #${id}`;
+  }
+
   get canRunAnalysis(): boolean {
     return this.state.canRunAnalysis();
   }
@@ -150,6 +190,7 @@ export class ResultadosStepComponent {
   }
 
   onEpsScrRelReady(rows: any[]): void {
+    this.cellPanel = null; // el panel era del análisis anterior
     console.log('[ResultadosStep] onEpsScrRelReady llamado con', rows?.length, 'filas');
     this.state.tableRows = Array.isArray(rows) ? rows : [];
     (this.mapNiche as any)?.setLoading?.(false);
