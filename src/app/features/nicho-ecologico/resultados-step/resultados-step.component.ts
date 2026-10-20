@@ -126,9 +126,13 @@ export class ResultadosStepComponent {
       },
       error: (err) => {
         if (this.cellPanel?.cellId !== cellId) return;
-        const msg = err?.status === 404
-          ? 'El análisis expiró (dura 15 minutos); vuelve a ejecutarlo para ver el detalle.'
-          : 'No se pudo obtener el detalle de la celda.';
+        // El endpoint responde 404 con { error } cuando el análisis expiró en
+        // Redis; un 404 sin ese cuerpo es que el servicio no tiene la ruta.
+        const serverMsg = typeof err?.error?.error === 'string' ? err.error.error : null;
+        const msg = serverMsg
+          ?? (err?.status === 404
+            ? 'El detalle por celda no está disponible en el servidor (falta actualizar el servicio).'
+            : 'No se pudo obtener el detalle de la celda.');
         this.cellPanel = { cellId, loading: false, error: msg, detail: null };
       },
     });
