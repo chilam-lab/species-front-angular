@@ -197,6 +197,8 @@
       [uuid]="uuidDecil"
       [decile]="state.selectedDecile"
       [metric]="'epsilon'"
+      exportName="nicho_deciles"
+      exportTitle="Nicho ecológico - tabla por deciles"
       [loading]="state.isAnalyzingNiche">
     </tabla-species>
   </section>
@@ -226,6 +228,8 @@
     <tabla-species
       [autoFetch]="false"
       [rowsFromMap]="state.tableRows"
+      exportName="nicho_relaciones"
+      exportTitle="Nicho ecológico - relaciones"
       [loading]="state.isAnalyzingNiche">
     </tabla-species>
   </section>
