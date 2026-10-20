@@ -112,6 +112,16 @@ export class ResultadosStepComponent {
     return parts.join(' · ');
   }
 
+  /** El último análisis usó mapa de probabilidad (escala fija 0–100%; el
+   *  selector de coloración no aplica). */
+  lastRunProb = false;
+
+  readonly colorModes = [
+    { value: 'deviation', label: 'Desviación estándar' },
+    { value: 'range', label: 'Rango igual' },
+    { value: 'jenks', label: 'Cortes naturales' },
+  ] as const;
+
   /** Panel con el detalle de la celda seleccionada en el mapa de Resultados. */
   cellPanel: { cellId: number; loading: boolean; error: string | null; detail: CellScoreDetail | null } | null = null;
 
@@ -183,6 +193,7 @@ export class ResultadosStepComponent {
       };
       const meta = { ...baseMeta, covars: this.covariablesSummary };
       const payloadConSesion = { ...payload, sessionid: this.auth.sessionIdOrNull, meta };
+      this.lastRunProb = payload.mapa_prob === true;
       // as any: mapa-maplibre reenvía esto tal cual como JSON al backend, pero su propio
       // tipo RelationQuery no conoce id_source:'terceros' (colecciones propias), que
       // resuelve middleware_datasources — no afecta el runtime, solo el chequeo de tipos.

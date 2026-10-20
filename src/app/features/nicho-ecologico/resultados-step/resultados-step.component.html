@@ -75,9 +75,19 @@
   <!-- Mapa de coocurrencias: siempre presente en el DOM (necesario para que el
        @ViewChild esté listo cuando se hace clic en "Ejecutar Análisis"). -->
   <div class="map-card" style="margin-bottom:16px;">
-    <h3>Mapa de Coocurrencias</h3>
+    <div class="map-header">
+      <h3>Mapa de Coocurrencias</h3>
+      <label class="color-mode" *ngIf="!lastRunProb">
+        Coloración
+        <select [(ngModel)]="state.scoreColorMode" name="scoreColorMode">
+          <option *ngFor="let m of colorModes" [value]="m.value">{{ m.label }}</option>
+        </select>
+      </label>
+      <span class="color-mode muted" *ngIf="lastRunProb">Mapa de probabilidad: escala fija de 0 a 100%</span>
+    </div>
     <div class="map-wrap">
       <app-mapa-maplibre
+        [scoreColorMode]="state.scoreColorMode"
         #mapNiche
         [mapId]="'map-resultados'"
         [showLayerControl]="true"

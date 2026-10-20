@@ -158,6 +158,10 @@ export class NicheAnalysisStateService {
   validationEnabled = false;
   validationIterations = 5;
 
+  /** Coloración del mapa de resultados (selector sobre el mapa), como la versión
+   *  estable: desviación estándar (por defecto), rango igual o cortes naturales. */
+  scoreColorMode: 'deviation' | 'range' | 'jenks' = 'deviation';
+
   /** Resultado de la validación del último análisis (null si no se pidió). */
   validationResult: ValidationResult | null = null;
   validationLoading = false;

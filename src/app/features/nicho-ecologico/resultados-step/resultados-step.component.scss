@@ -9,3 +9,25 @@
   .small { font-size: 0.78rem; }
   .validation-table { margin-top: 12px; }
 }
+
+.map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  h3 { margin: 0 0 8px; }
+
+  .color-mode {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+
+    select { padding: 4px 6px; }
+
+    &.muted { color: #777; }
+  }
+}
