@@ -203,13 +203,13 @@
   </section>
 
   <section class="card" style="margin-top:16px;" *ngIf="state.uuidNiche as uuidDecil">
-    <h2>Tabla por deciles (epsilon / score)</h2>
+    <h2>Tabla por deciles</h2>
     <div class="histogram-controls">
       <label for="decilSelect">Decil:</label>
       <select id="decilSelect" [(ngModel)]="state.selectedDecile">
         <option *ngFor="let d of [10,9,8,7,6,5,4,3,2,1]" [value]="d">{{ d }}</option>
       </select>
-      <span style="font-size:0.85rem; opacity:0.8;">Mostrando pares (target/covar) en el rango del decil seleccionado.</span>
+      <span style="font-size:0.85rem; opacity:0.8;">Variables presentes en las celdas del decil seleccionado (las celdas se ordenan por su score; el decil 10 es el de mayor score).</span>
     </div>
     <tabla-species
       [decileMode]="true"
