@@ -106,6 +106,8 @@ export type CellScoreDetail = {
 /** Validación cruzada del análisis (getEpsScrValidation). */
 export type ValidationResult = {
   iterations: number;
+  /** true = recall del modelo completo (sin validación), como la versión estable. */
+  full_model?: boolean;
   target_cells?: number;
   error?: string;
   deciles?: {

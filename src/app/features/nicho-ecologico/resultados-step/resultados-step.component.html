@@ -148,12 +148,17 @@
   </section>
 
   <section class="card validation-card" *ngIf="state.validationLoading || state.validationResult || state.validationError">
-    <h3>Validación (recall por decil)</h3>
+    <h3>{{ state.validationResult?.full_model ? 'Recall por decil (modelo completo)' : 'Validación (recall por decil)' }}</h3>
     <p *ngIf="state.validationLoading" class="muted">Calculando validación…</p>
     <p *ngIf="state.validationError" class="alert-warning">{{ state.validationError }}</p>
     <ng-container *ngIf="state.validationResult as v">
       <ng-container *ngIf="!v.error && v.deciles?.length">
-        <p class="muted">
+        <p class="muted" *ngIf="v.full_model">
+          Sin validación: recall del decil d = porcentaje de las {{ v.target_cells | number }} celdas del target que
+          quedaron en el decil d o superior del score, con el modelo completo (como la versión estable). Para medirlo
+          apartando celdas, activa "Validación" en Opciones del análisis. Se dibuja como línea sobre el histograma.
+        </p>
+        <p class="muted" *ngIf="!v.full_model">
           {{ v.iterations }} iteraciones sobre {{ v.target_cells | number }} celdas del target. Recall del decil d =
           porcentaje de las celdas del target apartadas en cada iteración que quedaron en el decil d o superior del
           score (promedio de las iteraciones). Se dibuja como línea sobre el histograma de score promedio por decil.
@@ -161,13 +166,13 @@
         <div class="table-wrap">
           <table class="summary-subtable validation-table">
             <thead>
-              <tr><th>Decil</th><th>Recall</th><th>Mín – máx</th><th>VP</th><th>FN</th><th>Nulos</th></tr>
+              <tr><th>Decil</th><th>Recall</th><th *ngIf="!v.full_model">Mín – máx</th><th>VP</th><th>FN</th><th>Nulos</th></tr>
             </thead>
             <tbody>
               <tr *ngFor="let d of v.deciles">
                 <td>{{ d.decil }}</td>
                 <td>{{ d.recall === null ? '—' : (d.recall * 100 | number:'1.1-1') + '%' }}</td>
-                <td>
+                <td *ngIf="!v.full_model">
                   <ng-container *ngIf="d.recall_min !== null">
                     {{ d.recall_min * 100 | number:'1.0-0' }}–{{ d.recall_max! * 100 | number:'1.0-0' }}%
                   </ng-container>
@@ -181,7 +186,7 @@
         </div>
         <p class="muted small">
           VP: celdas de prueba del target en el decil o superior · FN: por debajo · Nulos: sin ninguna covariable
-          (no cuentan en el recall). Conteos sumados de todas las iteraciones.
+          (no cuentan en el recall).<ng-container *ngIf="!v.full_model"> Conteos sumados de todas las iteraciones.</ng-container>
         </p>
       </ng-container>
     </ng-container>

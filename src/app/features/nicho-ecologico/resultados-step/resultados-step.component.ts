@@ -215,15 +215,15 @@ export class ResultadosStepComponent {
     this.loadValidation();
   }
 
-  /** La validación se calcula junto con el análisis y queda en Redis con el
-   *  mismo uuid; se pide solo si el análisis la incluyó. */
+  /** El recall se calcula junto con el análisis y queda en Redis con el mismo
+   *  uuid: con validación es el promedio de las k iteraciones; sin ella, el del
+   *  modelo completo (como la versión estable, que siempre dibuja la línea). */
   private loadValidation(): void {
     this.state.validationResult = null;
     this.state.validationError = null;
     this.recallLine = null;
     const uuid = this.state.uuidNiche;
-    const iterations = this.state.validationEnabled ? this.state.validationIterations : 0;
-    if (!uuid || iterations < 2) return;
+    if (!uuid) return;
     this.state.validationLoading = true;
     this.state.getValidation(uuid).subscribe({
       next: (v) => {
