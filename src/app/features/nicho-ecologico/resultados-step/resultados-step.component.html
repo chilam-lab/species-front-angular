@@ -10,63 +10,39 @@
       <span class="material-icons" aria-hidden="true">fact_check</span>
       <h3>{{ 'ni.r.summary' | t }}</h3>
     </header>
-
-    <div class="summary-tiles">
-      <div class="tile">
-        <span class="material-icons tile-icon" aria-hidden="true">storage</span>
-        <div>
-          <span class="tile-label">{{ 'ni.r.source' | t }}</span>
-          <span class="tile-value">{{ targetSourceLabel }}</span>
-        </div>
+    <div class="summary-grid">
+      <div class="field third">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">storage</span>{{ 'ni.r.source' | t }}</span>
+        <div class="chips"><span class="chip">{{ targetSourceLabel }}</span></div>
       </div>
-      <div class="tile">
-        <span class="material-icons tile-icon" aria-hidden="true">public</span>
-        <div>
-          <span class="tile-label">{{ 'ni.r.region' | t }}</span>
-          <span class="tile-value">{{ regionDisplay }}</span>
-        </div>
+      <div class="field third">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">public</span>{{ 'ni.r.region' | t }}</span>
+        <div class="chips"><span class="chip">{{ regionDisplay }}</span></div>
       </div>
-      <div class="tile">
-        <span class="material-icons tile-icon" aria-hidden="true">grid_on</span>
-        <div>
-          <span class="tile-label">{{ 'ni.r.resolution' | t }}</span>
-          <span class="tile-value">{{ resolutionDisplay }}</span>
-        </div>
+      <div class="field third">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">grid_on</span>{{ 'ni.r.resolution' | t }}</span>
+        <div class="chips"><span class="chip">{{ resolutionDisplay }}</span></div>
       </div>
-    </div>
-
-    <div class="summary-block">
-      <span class="block-label"><span class="material-icons" aria-hidden="true">my_location</span>{{ 'ni.r.target' | t }}</span>
-      <div class="chips">
-        <span class="chip chip-target" *ngFor="let c of chips(targetTaxonSummary)">{{ c }}</span>
+      <div class="field third">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">my_location</span>{{ 'ni.r.target' | t }}</span>
+        <div class="chips"><span class="chip" *ngFor="let c of chips(targetTaxonSummary)">{{ c }}</span></div>
       </div>
-    </div>
-
-    <div class="summary-block">
-      <span class="block-label"><span class="material-icons" aria-hidden="true">hub</span>{{ 'ni.r.covars' | t }}</span>
-      <span class="chip chip-empty" *ngIf="covariablesSummary.length === 0">{{ 'ni.none' | t }}</span>
-      <ul class="covar-list" *ngIf="covariablesSummary.length > 0">
-        <li *ngFor="let c of covariablesSummary">
-          <span class="source-badge" [ngClass]="'src-' + sourceTone(c.source)">{{ c.source }}</span>
-          <div class="chips">
-            <span class="chip" *ngFor="let v of chips(c.values)">{{ v }}</span>
-          </div>
-        </li>
-      </ul>
-    </div>
-
-    <div class="summary-split">
-      <div class="summary-block">
-        <span class="block-label"><span class="material-icons" aria-hidden="true">filter_alt</span>{{ 'ni.r.filters' | t }}</span>
+      <div class="field two-thirds">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">hub</span>{{ 'ni.r.covars' | t }}</span>
         <div class="chips">
-          <span class="chip chip-soft" *ngFor="let c of chips(targetFiltersSummary)">{{ c }}</span>
+          <span class="chip muted" *ngIf="covariablesSummary.length === 0">{{ 'ni.none' | t }}</span>
+          <ng-container *ngFor="let c of covariablesSummary">
+            <span class="chip" *ngFor="let v of chips(c.values)"><strong>{{ c.source }}</strong>{{ v }}</span>
+          </ng-container>
         </div>
       </div>
-      <div class="summary-block">
-        <span class="block-label"><span class="material-icons" aria-hidden="true">tune</span>{{ 'ni.r.options' | t }}</span>
-        <div class="chips">
-          <span class="chip chip-soft" *ngFor="let c of chips(analysisOptionsSummary)">{{ c }}</span>
-        </div>
+      <div class="field half">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">filter_alt</span>{{ 'ni.r.filters' | t }}</span>
+        <div class="chips"><span class="chip" *ngFor="let c of chips(targetFiltersSummary)">{{ c }}</span></div>
+      </div>
+      <div class="field half">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">tune</span>{{ 'ni.r.options' | t }}</span>
+        <div class="chips"><span class="chip" *ngFor="let c of chips(analysisOptionsSummary)">{{ c }}</span></div>
       </div>
     </div>
   </section>

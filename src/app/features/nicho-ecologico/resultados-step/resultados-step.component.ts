@@ -112,19 +112,17 @@ export class ResultadosStepComponent {
     return n ? `${base} · ${this.i18n.t('ni.r.cellsDeleted', { n })}` : base;
   }
 
-  /** Partes de un resumen "a · b · c" para mostrarlas como etiquetas. */
+  /** Partes de un resumen "a · b · c" para mostrarlas como etiquetas; las
+   *  consultas guardadas ("especie = Lynx rufus") se muestran como "Especie: Lynx rufus". */
   chips(text: string | null | undefined): string[] {
-    return String(text ?? '').split(' · ').map((x) => x.trim()).filter(Boolean);
-  }
-
-  /** Color de la etiqueta de cada fuente en el resumen. */
-  sourceTone(label: string): string {
-    const l = (label || '').toLowerCase();
-    if (l.includes('snib')) return 'snib';
-    if (l.includes('gbif')) return 'gbif';
-    if (l.includes('worldclim')) return 'wc';
-    if (l.includes('dem')) return 'dem';
-    return 'own';
+    return String(text ?? '')
+      .split(' · ')
+      .map((x) => x.trim())
+      .filter(Boolean)
+      .map((x) => {
+        const m = /^([\wáéíóúñ]+)\s*=\s*(.+)$/i.exec(x);
+        return m ? `${this.i18n.level(m[1]).replace(/^./, (ch) => ch.toUpperCase())}: ${m[2]}` : x;
+      });
   }
 
   get analysisOptionsSummary(): string {
