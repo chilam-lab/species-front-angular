@@ -233,6 +233,7 @@ export class ResultadosStepComponent {
     this.state.validationResult = null;
     this.state.validationError = null;
     this.recallLine = null;
+    this.recallTooltip = null;
     const uuid = this.state.uuidNiche;
     if (!uuid) return;
     this.state.validationLoading = true;
@@ -257,14 +258,27 @@ export class ResultadosStepComponent {
    *  getter: un arreglo nuevo en cada ciclo de detección de cambios haría que
    *  la gráfica se redibujara sin parar. */
   recallLine: Array<number | null> | null = null;
+  /** Detalle del tooltip de cada punto de la línea (VP, FN, nulos), como la
+   *  versión estable; mismo orden que recallLine. */
+  recallTooltip: Array<string[] | null> | null = null;
 
   private updateRecallLine(): void {
-    const dec = this.state.validationResult?.deciles;
-    if (!dec?.length) { this.recallLine = null; return; }
-    const byDecil = new Map(dec.map((d) => [String(d.decil), d.recall]));
+    const v = this.state.validationResult;
+    const dec = v?.deciles;
+    if (!dec?.length) { this.recallLine = null; this.recallTooltip = null; return; }
+    const byDecil = new Map(dec.map((d) => [String(d.decil), d]));
     this.recallLine = this.state.decileHistogramData.map((b) => {
-      const r = byDecil.get(b.label);
+      const r = byDecil.get(b.label)?.recall;
       return r === null || r === undefined ? null : +(r * 100).toFixed(1);
+    });
+    this.recallTooltip = this.state.decileHistogramData.map((b) => {
+      const d = byDecil.get(b.label);
+      if (!d) return null;
+      const lines = [`VP: ${d.vp}`, `FN: ${d.fn}`, `Nulos: ${d.nulo}`];
+      if (!v!.full_model && d.recall_min !== null && d.recall_max !== null) {
+        lines.push(`Rango entre iteraciones: ${(d.recall_min * 100).toFixed(1)}–${(d.recall_max * 100).toFixed(1)}%`);
+      }
+      return lines;
     });
   }
 }
