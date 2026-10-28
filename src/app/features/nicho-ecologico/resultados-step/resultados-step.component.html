@@ -87,6 +87,9 @@
         [loading]="state.isAnalyzingNiche"
         [showDownload]="true"
         [downloadFileName]="'nicho_mapa'"
+        [extraDownloads]="extraDownloads"
+        [downloadBusy]="downloadBusy"
+        (downloadRequest)="onDownloadRequest($event)"
         (epsScrRelReady)="onEpsScrRelReady($event)"
         (epsScrExtrasReady)="onEpsScrExtrasReady($event)"
         [cellSelectMode]="!!state.uuidNiche && !state.isAnalyzingNiche"
@@ -134,6 +137,7 @@
         </div>
       </aside>
     </div>
+    <p class="download-notice" *ngIf="downloadNotice" role="status">{{ downloadNotice }}</p>
   </div>
 
   <section class="card" *ngIf="state.decileHistogramData?.length">

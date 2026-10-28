@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { MapaMaplibreComponent } from 'mapa-maplibre';
+import { MapaMaplibreComponent, fileStamp, saveFile } from 'mapa-maplibre';
 import { TablaSpeciesComponent } from 'tabla-species';
 import { HistogramChartComponent } from 'histogram-chart';
 import { I18nService, TranslatePipe } from 'taxon-shared';
 
 import { NicheAnalysisStateService } from '../state/nicho-analysis-state.service';
-import { CellScoreDetail, TargetFilters } from '../state/nicho-analysis.models';
+import { CellScoreDetail, EpsScrPayload, TargetFilters } from '../state/nicho-analysis.models';
+import { OccService, TargetOccRecord } from '../../../services/occ.service';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
@@ -26,7 +27,8 @@ export class ResultadosStepComponent {
 
   private readonly i18n = inject(I18nService);
 
-  constructor(public state: NicheAnalysisStateService, private router: Router, private auth: AuthService) {
+  constructor(public state: NicheAnalysisStateService, private router: Router, private auth: AuthService,
+              private occService: OccService) {
     // El detalle del tooltip de la línea de recall se arma como texto: se
     // rehace al cambiar de idioma.
     effect(() => {
@@ -141,6 +143,80 @@ export class ResultadosStepComponent {
    *  selector de coloración no aplica). */
   lastRunProb = false;
 
+  /* ===== Descargas del mapa de Resultados (como la versión estable) ===== */
+
+  /** Payload del último análisis: los registros del target se piden con el
+   *  mismo target, filtros y celdas borradas. */
+  private lastRunPayload: EpsScrPayload | null = null;
+  downloadBusy = false;
+  downloadNotice: string | null = null;
+
+  /** Opciones del menú de descarga además del mapa (GeoJSON de celdas, que
+   *  resuelve el propio componente del mapa). */
+  get extraDownloads(): Array<{ id: string; label: string }> {
+    if (!this.lastRunPayload || !this.state.uuidNiche) return [];
+    return [
+      { id: 'occ-geojson', label: this.i18n.t('ni.r.dl.occGeojson') },
+      { id: 'occ-csv', label: this.i18n.t('ni.r.dl.occCsv') },
+    ];
+  }
+
+  onDownloadRequest(id: string): void {
+    const p = this.lastRunPayload;
+    if (!p || this.downloadBusy) return;
+    this.downloadBusy = true;
+    this.downloadNotice = null;
+    this.occService.getTargetOccurrences({
+      grid_id: p.grid_id, target: p.target, target_filters: p.target_filters, excluded_cells: p.excluded_cells,
+    }).subscribe({
+      next: (res) => {
+        this.downloadBusy = false;
+        const notes: string[] = [];
+        if (res.terceros_omitidos) notes.push(this.i18n.t('ni.r.dl.terceros'));
+        if (res.truncated) notes.push(this.i18n.t('ni.r.dl.truncated', { n: res.data.length }));
+        if (!res.data.length) {
+          this.downloadNotice = [this.i18n.t('ni.r.dl.empty'), ...notes].join(' ');
+          return;
+        }
+        this.downloadNotice = notes.length ? notes.join(' ') : null;
+        if (id === 'occ-csv') {
+          saveFile('\ufeff' + this.occCsv(res.data), `nicho_registros_${fileStamp()}.csv`, 'text/csv;charset=utf-8');
+        } else {
+          saveFile(JSON.stringify(this.occGeojson(res.data)), `nicho_registros_${fileStamp()}.geojson`, 'application/geo+json');
+        }
+      },
+      error: () => {
+        this.downloadBusy = false;
+        this.downloadNotice = this.i18n.t('ni.r.dl.error');
+      },
+    });
+  }
+
+  private static readonly OCC_FIELDS = ['nombre', 'anio', 'fecha', 'fuente', 'coleccion', 'tipo', 'fosil', 'celda', 'longitud', 'latitud', 'url'] as const;
+
+  /** Puntos con los atributos del registro (CRS84, como la versión estable). */
+  private occGeojson(rows: TargetOccRecord[]): unknown {
+    return {
+      type: 'FeatureCollection',
+      crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' } },
+      features: rows.map((r) => {
+        const properties: Record<string, unknown> = {};
+        for (const k of ResultadosStepComponent.OCC_FIELDS) if (k !== 'longitud' && k !== 'latitud') properties[k] = r[k] ?? null;
+        return { type: 'Feature', geometry: { type: 'Point', coordinates: [r.longitud, r.latitud] }, properties };
+      }),
+    };
+  }
+
+  private occCsv(rows: TargetOccRecord[]): string {
+    const cell = (v: unknown) => {
+      if (v === null || v === undefined) return '';
+      const s = String(v);
+      return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const fields = ResultadosStepComponent.OCC_FIELDS;
+    return [fields.join(','), ...rows.map((r) => fields.map((k) => cell(r[k])).join(','))].join('\r\n');
+  }
+
   readonly colorModes = [
     { value: 'deviation', labelKey: 'ni.r.mode.deviation' },
     { value: 'range', labelKey: 'ni.r.mode.range' },
@@ -219,6 +295,8 @@ export class ResultadosStepComponent {
       const meta = { ...baseMeta, covars: this.covariablesSummary };
       const payloadConSesion = { ...payload, sessionid: this.auth.sessionIdOrNull, meta };
       this.lastRunProb = payload.mapa_prob === true;
+      this.lastRunPayload = payload;
+      this.downloadNotice = null;
       // as any: mapa-maplibre reenvía esto tal cual como JSON al backend, pero su propio
       // tipo RelationQuery no conoce id_source:'terceros' (colecciones propias), que
       // resuelve middleware_datasources — no afecta el runtime, solo el chequeo de tipos.

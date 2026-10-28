@@ -31,6 +31,21 @@ export interface CellOccResponse {
   data: CellOccRecord[];
 }
 
+/** Registro del target con coordenadas y celda (descarga desde Resultados). */
+export interface TargetOccRecord extends CellOccRecord {
+  fosil: boolean | null;
+  longitud: number;
+  latitud: number;
+  celda: number;
+}
+
+export interface TargetOccResponse {
+  truncated: boolean;
+  /** El target incluía colecciones propias, que no tienen registros individuales. */
+  terceros_omitidos: boolean;
+  data: TargetOccRecord[];
+}
+
 export interface SplistItem {
   nivel: string;
   valor: string;
@@ -103,6 +118,22 @@ export class OccService {
         console.error('[OccService] getOccOnMap error:', err);
         return throwError(() => err);
       })
+    );
+  }
+
+  /** Todos los registros del target del análisis (en la región, sin celdas
+   *  borradas), para descargarlos desde el mapa de Resultados. */
+  getTargetOccurrences(payload: {
+    grid_id: number; target: unknown[]; target_filters?: TargetFilters; excluded_cells?: number[];
+  }): Observable<TargetOccResponse> {
+    return this.http.post<TargetOccResponse>(`${this.baseUrl}/mdf/getTargetOccurrences`, payload, {
+      headers: { 'Content-Type': 'application/json' },
+    }).pipe(
+      map((res) => ({
+        truncated: !!res?.truncated,
+        terceros_omitidos: !!res?.terceros_omitidos,
+        data: Array.isArray(res?.data) ? res.data : [],
+      }))
     );
   }
 
