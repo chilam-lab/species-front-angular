@@ -4,6 +4,7 @@ import { Router, NavigationEnd, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { I18nService, Lang, TranslatePipe } from 'taxon-shared';
 import { Subscription, filter } from 'rxjs';
+import { ReportIssueDialogComponent } from '../report-issue/report-issue-dialog.component';
 
 /** El título/subtítulo antes eran texto fijo ("Nicho Ecológico...") aunque este
  *  header se muestra en TODAS las rutas (está montado en AppComponent, fuera del
@@ -23,13 +24,14 @@ const DEFAULT_SECTION = { title: 'app.title', subtitle: 'app.subtitle' };
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterLink, TranslatePipe]
+  imports: [CommonModule, RouterLink, TranslatePipe, ReportIssueDialogComponent]
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   @Output() toggleSidebar = new EventEmitter<void>();
 
   title = DEFAULT_SECTION.title;
   subtitle = DEFAULT_SECTION.subtitle;
+  reportOpen = false;
 
   private sub?: Subscription;
 

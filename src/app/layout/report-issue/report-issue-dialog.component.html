@@ -1,0 +1,64 @@
+<div class="backdrop" (click)="close()"></div>
+<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="rep-title" (keydown.escape)="close()">
+  <header>
+    <h3 id="rep-title">{{ 'rep.title' | t }}</h3>
+    <button type="button" class="icon-btn" (click)="close()" [attr.aria-label]="'rep.close' | t">
+      <span class="material-icons" aria-hidden="true">close</span>
+    </button>
+  </header>
+
+  <!-- Enviado -->
+  <div class="body" *ngIf="issueNumber !== null; else form">
+    <p class="ok">{{ 'rep.ok' | t: { n: issueNumber } }}</p>
+    <div class="actions">
+      <button type="button" class="primary" (click)="close()">{{ 'rep.close' | t }}</button>
+    </div>
+  </div>
+
+  <ng-template #form>
+    <!-- Sin sesión -->
+    <div class="body" *ngIf="!(auth.currentUser$ | async); else formBody">
+      <p>{{ 'rep.loginNeeded' | t }}</p>
+      <div class="actions">
+        <button type="button" (click)="close()">{{ 'rep.cancel' | t }}</button>
+        <a routerLink="/login" class="primary" (click)="close()">{{ 'app.login' | t }}</a>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #formBody>
+    <form class="body" (ngSubmit)="send()">
+      <p class="intro">{{ 'rep.intro' | t }}</p>
+
+      <fieldset class="tipo">
+        <legend>{{ 'rep.type' | t }}</legend>
+        <label *ngFor="let t of tipos">
+          <input type="radio" name="tipo" [value]="t" [(ngModel)]="tipo" />
+          {{ 'rep.type.' + t | t }}
+        </label>
+      </fieldset>
+
+      <label class="field">
+        <span>{{ 'rep.summary' | t }}</span>
+        <input type="text" name="titulo" maxlength="120" [(ngModel)]="titulo"
+               [placeholder]="'rep.summary.ph' | t" autocomplete="off" />
+      </label>
+
+      <label class="field">
+        <span>{{ 'rep.description' | t }}</span>
+        <textarea name="descripcion" rows="7" maxlength="5000" [(ngModel)]="descripcion"
+                  [placeholder]="'rep.description.ph' | t"></textarea>
+      </label>
+
+      <p class="hint">{{ 'rep.context' | t }}</p>
+      <p class="error" *ngIf="errorKey" role="alert">{{ errorKey | t }}</p>
+
+      <div class="actions">
+        <button type="button" (click)="close()">{{ 'rep.cancel' | t }}</button>
+        <button type="submit" class="primary" [disabled]="sending || !valid">
+          {{ (sending ? 'rep.sending' : 'rep.send') | t }}
+        </button>
+      </div>
+    </form>
+  </ng-template>
+</div>

@@ -40,6 +40,20 @@
     gap: 14px;
   }
 
+  .report-btn {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.85);
+    padding: 3px 6px;
+    cursor: pointer;
+
+    .material-icons { font-size: 20px; }
+    &:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+  }
+
   .lang-switch {
     display: flex;
     border: 1px solid rgba(255, 255, 255, 0.4);

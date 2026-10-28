@@ -6,6 +6,12 @@
   </div>
 
   <div class="header-right">
+    <!-- Reporte de incidencias (crea un issue en GitHub; pide sesión dentro del diálogo). -->
+    <button type="button" class="report-btn" (click)="reportOpen = true"
+            [title]="'rep.open' | t" [attr.aria-label]="'rep.open' | t">
+      <span class="material-icons" aria-hidden="true">bug_report</span>
+    </button>
+
     <!-- Idioma: disponible con o sin sesión; se recuerda en el navegador
          (y en el perfil si hay sesión, desde Mi cuenta). -->
     <div class="lang-switch" role="group" [attr.aria-label]="'app.language' | t">
@@ -31,3 +37,5 @@
     </ng-template>
   </div>
 </header>
+
+<app-report-issue-dialog *ngIf="reportOpen" (closed)="reportOpen = false"></app-report-issue-dialog>
