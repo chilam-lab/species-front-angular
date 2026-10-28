@@ -85,6 +85,8 @@
         [controlBaseLayer]="false"
         [controlScoreLayer]="true"
         [loading]="state.isAnalyzingNiche"
+        [showDownload]="true"
+        [downloadFileName]="'nicho_mapa'"
         (epsScrRelReady)="onEpsScrRelReady($event)"
         (epsScrExtrasReady)="onEpsScrExtrasReady($event)"
         [cellSelectMode]="!!state.uuidNiche && !state.isAnalyzingNiche"

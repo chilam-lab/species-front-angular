@@ -24,7 +24,7 @@
     "bootstrap": "^5.3.7",
     "chart.js": "^4.5.1",
     "histogram-chart": "file:local-packages/histogram-chart-0.0.6.tgz",
-    "mapa-maplibre": "file:local-packages/mapa-maplibre-0.0.15.tgz",
+    "mapa-maplibre": "file:local-packages/mapa-maplibre-0.0.16.tgz",
     "maplibre-gl": "^5.6.1",
     "region-selector": "file:local-packages/region-selector-0.0.5.tgz",
     "rxjs": "~7.8.0",

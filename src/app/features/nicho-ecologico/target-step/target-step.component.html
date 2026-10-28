@@ -112,6 +112,8 @@
             [loading]="state.isAnalyzingOcc"
             [cellSelectMode]="state.occValues.length > 0"
             [excludedCells]="state.excludedCells"
+            [showDownload]="true"
+            [downloadFileName]="'nicho_target'"
             (cellClick)="onCellClick($event)">
           </app-mapa-maplibre>
 
