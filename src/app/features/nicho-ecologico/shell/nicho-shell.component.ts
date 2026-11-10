@@ -4,6 +4,7 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { I18nService, NichoStepDef, NichoStepperComponent, TranslatePipe } from 'taxon-shared';
 import { NicheAnalysisStateService } from '../state/nicho-analysis-state.service';
+import { IssueContextService } from '../../../core/issues/issue-context.service';
 
 const STEP_PATHS = ['target', 'covariables', 'resultados'];
 
@@ -26,8 +27,10 @@ const STEP_META: { title: string; description: string }[] = [
 export class NichoShellComponent implements OnInit, OnDestroy {
   activeIndex = 0;
   private sub?: Subscription;
+  private unregisterIssueContext?: () => void;
 
   private readonly i18n = inject(I18nService);
+  private readonly issueContext = inject(IssueContextService);
 
   constructor(private router: Router, private state: NicheAnalysisStateService) {}
 
@@ -36,10 +39,15 @@ export class NichoShellComponent implements OnInit, OnDestroy {
     this.sub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(e => this.updateActiveIndex(e.urlAfterRedirects));
+    // Los reportes de incidencia (header) adjuntan la configuración de este análisis.
+    this.unregisterIssueContext = this.issueContext.register(
+      () => this.state.issueSnapshot(STEP_PATHS[this.activeIndex])
+    );
   }
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
+    this.unregisterIssueContext?.();
   }
 
   private updateActiveIndex(url: string): void {

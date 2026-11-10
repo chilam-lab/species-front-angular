@@ -296,6 +296,7 @@ export class ResultadosStepComponent {
       const payloadConSesion = { ...payload, sessionid: this.auth.sessionIdOrNull, meta };
       this.lastRunProb = payload.mapa_prob === true;
       this.lastRunPayload = payload;
+      this.state.lastRunPayload = payload;
       this.downloadNotice = null;
       // as any: mapa-maplibre reenvía esto tal cual como JSON al backend, pero su propio
       // tipo RelationQuery no conoce id_source:'terceros' (colecciones propias), que

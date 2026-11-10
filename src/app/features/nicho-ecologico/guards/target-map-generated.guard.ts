@@ -35,6 +35,7 @@ export const targetMapGeneratedGuard: CanActivateFn = () => {
     // reutilizó vía onSameUrlNavigation:'reload') para no mezclar mapa/tabla/
     // histogramas viejos con la nueva configuración recién cargada.
     state.uuidNiche = null;
+    state.lastRunPayload = null;
     state.tableRows = [];
     state.scoreDeciles = [];
     state.decileHistogramData = [];

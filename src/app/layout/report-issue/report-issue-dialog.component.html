@@ -50,6 +50,42 @@
                   [placeholder]="'rep.description.ph' | t"></textarea>
       </label>
 
+      <!-- Evidencia: imágenes elegidas o pegadas con Ctrl+V -->
+      <div class="field">
+        <span>{{ 'rep.att.title' | t }}</span>
+        <p class="hint">{{ 'rep.att.hint' | t: { n: maxAttachments } }}</p>
+        <div class="evidence">
+          <figure *ngFor="let e of evidence; let i = index">
+            <img [src]="e.url" [alt]="e.file.name" />
+            <figcaption [title]="e.file.name">{{ e.file.name }}</figcaption>
+            <button type="button" class="icon-btn remove" (click)="removeEvidence(i)"
+                    [attr.aria-label]="'rep.att.remove' | t">
+              <span class="material-icons" aria-hidden="true">close</span>
+            </button>
+          </figure>
+          <label class="add" *ngIf="evidence.length < maxAttachments">
+            <span class="material-icons" aria-hidden="true">add_photo_alternate</span>
+            {{ 'rep.att.add' | t }}
+            <input #fileInput type="file" multiple [accept]="acceptTypes" (change)="onFilesSelected(fileInput)" hidden />
+          </label>
+        </div>
+        <p class="error" *ngIf="attachmentErrorKey" role="alert">{{ attachmentErrorKey | t }}</p>
+      </div>
+
+      <!-- Configuración del análisis abierto (solo dentro de Nicho Ecológico) -->
+      <fieldset class="config" *ngIf="analysis">
+        <legend>{{ 'rep.cfg.title' | t }}</legend>
+        <label *ngFor="let m of configModes">
+          <input type="radio" name="configMode" [value]="m" [(ngModel)]="configMode" />
+          {{ 'rep.cfg.' + m | t }}
+        </label>
+        <button type="button" class="link" *ngIf="configMode !== 'ninguna'"
+                (click)="showConfigPreview = !showConfigPreview">
+          {{ (showConfigPreview ? 'rep.cfg.hide' : 'rep.cfg.show') | t }}
+        </button>
+        <pre class="preview" *ngIf="showConfigPreview && configMode !== 'ninguna'">{{ configPreview }}</pre>
+      </fieldset>
+
       <p class="hint">{{ 'rep.context' | t }}</p>
       <p class="error" *ngIf="errorKey" role="alert">{{ errorKey | t }}</p>
 

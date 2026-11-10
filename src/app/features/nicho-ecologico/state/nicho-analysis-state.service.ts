@@ -20,6 +20,7 @@ import { environment } from '../../../../environments/environment';
 import type { TaxonSelectorSnapshot } from 'taxon-selector';
 import type { TaxonNavigatorSnapshot } from 'taxon-navigator';
 import type { AnalysisHistoryMeta } from '../../../core/analysis-history/analysis-history.models';
+import type { IssueAnalysisContext } from '../../../core/issues/issue-context.service';
 
 /**
  * Estado compartido del asistente de 3 pasos (Target / Covariables / Resultados).
@@ -212,6 +213,8 @@ export class NicheAnalysisStateService {
   decileHistogramData: { label: string; value: number }[] = [];
   uuidNiche: string | null = null;
   selectedDecile = 10;
+  /** Último payload ejecutado en Resultados (se adjunta a los reportes de error). */
+  lastRunPayload: EpsScrPayload | null = null;
 
   // ===== Validación (compartida) =====
   showValidation = false;
@@ -393,6 +396,53 @@ export class NicheAnalysisStateService {
 
   private buildTerceroRelationQuery(tercero: TerceroSelection): RelationQuery {
     return { id_source: 'terceros', id_data: tercero.id_data, q: `Mi colección: ${tercero.nombre_datos}`, offset: 0, limit: 0 };
+  }
+
+  /** Configuración actual para un reporte de incidencia. A diferencia de
+   *  buildEpsScrPayload no valida ni toca validationMessages: devuelve lo que
+   *  haya aunque falte target, covariables o malla (configuración parcial). */
+  issueSnapshot(paso: string): IssueAnalysisContext {
+    const pre = this.preloadedPayload;
+    const target = this.usingPreloadedTarget ? pre!.target : this.buildTargetQueries();
+    const covars = this.usingPreloadedCovars ? pre!.covars : this.buildCovarsQueries();
+    const borrador = this.withAnalysisOptions({
+      grid_id: (this.usingPreloadedTarget ? pre!.grid_id : this.gridId) as number,
+      min_occ: pre?.min_occ ?? 5,
+      target,
+      covars,
+      target_filters: this.usingPreloadedTarget ? pre!.target_filters : this.activeTargetFilters,
+      excluded_cells: [...this.excludedCells],
+    });
+    const covarFuentes = [
+      ...this.taxonSel2Sources.map(s => this.sourceLabel(s.source_id)),
+      ...this.covarTerceros.map(c => `${this.sourceLabel('terceros')}: ${c.nombre_datos}`),
+    ];
+    const f = this.targetFilters;
+    return {
+      paso,
+      resumen: {
+        fuente_target: this.targetTercero
+          ? `${this.sourceLabel('terceros')}: ${this.targetTercero.nombre_datos}`
+          : this.targetSourceId != null ? this.sourceLabel(this.targetSourceId) : null,
+        region: this.regionName ?? this.regionId,
+        resolucion: this.resolution,
+        grid_id: borrador.grid_id ?? null,
+        target: target.map(t => t.q).join(' | ') || null,
+        filtros_target: this.targetTercero ? null
+          : `años ${f.fecha_inicio ?? '…'}-${f.fecha_fin ?? '…'}, sin fecha ${f.sin_fecha ? 'sí' : 'no'}, fósiles ${f.fosil ? 'sí' : 'no'}`,
+        celdas_excluidas: this.excludedCells.length,
+        mapa_target_generado: this.targetMapGenerated,
+        fuentes_covariables: covarFuentes.join(', ') || null,
+        n_covariables: covars.length,
+        min_nj: borrador.min_nj ?? null,
+        apriori: this.apriori,
+        mapa_prob: this.mapaProb,
+        validacion: borrador.validation_iterations ?? 0,
+        reejecucion_historial: !!pre,
+        uuid_analisis: this.uuidNiche,
+      },
+      payload: { configuracion_actual: borrador, ultimo_ejecutado: this.lastRunPayload },
+    };
   }
 
   /** true si target+covariables ya tienen lo mínimo para poder ejecutar el análisis
