@@ -76,7 +76,8 @@ export class TargetStepComponent implements OnInit {
     this.state.covarsEnabledSourceIds = [
       this.state.targetSourceId,
       NicheAnalysisStateService.WORLDCLIM_SOURCE_ID,
-      NicheAnalysisStateService.DEM_SOURCE_ID
+      NicheAnalysisStateService.DEM_SOURCE_ID,
+      NicheAnalysisStateService.USV_SOURCE_ID
     ];
     this.state.targetMapGenerated = false;
     this.state.clearValidation();

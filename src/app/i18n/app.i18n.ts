@@ -27,6 +27,7 @@ export const APP_I18N: Translations = {
     'rep.att.badType': 'Solo se aceptan imágenes PNG, JPG, WEBP o GIF.', 'rep.att.tooBig': 'Cada imagen debe pesar menos de 5 MB.', 'rep.att.read': 'No se pudo leer una de las imágenes.',
     'rep.cfg.title': 'Configuración del análisis', 'rep.cfg.ninguna': 'No adjuntar', 'rep.cfg.resumen': 'Resumen', 'rep.cfg.completa': 'Completa (incluye el JSON del análisis)',
     'rep.cfg.show': 'Ver lo que se enviará', 'rep.cfg.hide': 'Ocultar',
+    'level.usv_serie_vii': 'Uso de suelo (INEGI Serie VII)', 'level.clase_usv': 'Clase de uso de suelo y vegetación',
     'nav.niche': 'Nicho Ecológico', 'nav.networks': 'Redes Ecológicas', 'nav.cases': 'Casos de Uso', 'nav.language': 'Idioma', 'nav.login': 'Iniciar sesión',
     // Stepper
     'step.target': 'Target', 'step.covars': 'Covariables', 'step.results': 'Resultados',
@@ -55,6 +56,7 @@ export const APP_I18N: Translations = {
     'rep.att.badType': 'Only PNG, JPG, WEBP or GIF images are accepted.', 'rep.att.tooBig': 'Each image must be smaller than 5 MB.', 'rep.att.read': 'One of the images could not be read.',
     'rep.cfg.title': 'Analysis configuration', 'rep.cfg.ninguna': 'Do not attach', 'rep.cfg.resumen': 'Summary', 'rep.cfg.completa': 'Full (includes the analysis JSON)',
     'rep.cfg.show': 'Show what will be sent', 'rep.cfg.hide': 'Hide',
+    'level.usv_serie_vii': 'Land use (INEGI Series VII)', 'level.clase_usv': 'Land use and vegetation class',
     'nav.niche': 'Ecological Niche', 'nav.networks': 'Ecological Networks', 'nav.cases': 'Use Cases', 'nav.language': 'Language', 'nav.login': 'Sign in',
     'step.target': 'Target', 'step.covars': 'Covariates', 'step.results': 'Results',
     'step.target.title': 'Target setup', 'step.target.desc': 'Choose the data source, the study area and the target species.',
@@ -82,6 +84,7 @@ export const APP_I18N: Translations = {
     'rep.att.badType': 'Só são aceitas imagens PNG, JPG, WEBP ou GIF.', 'rep.att.tooBig': 'Cada imagem deve ter menos de 5 MB.', 'rep.att.read': 'Não foi possível ler uma das imagens.',
     'rep.cfg.title': 'Configuração da análise', 'rep.cfg.ninguna': 'Não anexar', 'rep.cfg.resumen': 'Resumo', 'rep.cfg.completa': 'Completa (inclui o JSON da análise)',
     'rep.cfg.show': 'Ver o que será enviado', 'rep.cfg.hide': 'Ocultar',
+    'level.usv_serie_vii': 'Uso do solo (INEGI Série VII)', 'level.clase_usv': 'Classe de uso do solo e vegetação',
     'nav.niche': 'Nicho Ecológico', 'nav.networks': 'Redes Ecológicas', 'nav.cases': 'Casos de Uso', 'nav.language': 'Idioma', 'nav.login': 'Entrar',
     'step.target': 'Alvo', 'step.covars': 'Covariáveis', 'step.results': 'Resultados',
     'step.target.title': 'Configuração do alvo', 'step.target.desc': 'Escolha a fonte de dados, a área de estudo e a espécie alvo.',

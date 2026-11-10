@@ -77,6 +77,7 @@ export const SOURCE_LABELS: Record<number | string, string> = {
   2: 'WorldClim',
   3: 'GBIF',
   4: 'DEM',
+  5: 'Uso de suelo',
   terceros: 'Mis datos'
 };
 

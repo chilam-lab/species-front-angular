@@ -35,6 +35,7 @@ import type { IssueAnalysisContext } from '../../../core/issues/issue-context.se
 export class NicheAnalysisStateService {
   static readonly WORLDCLIM_SOURCE_ID = 2;
   static readonly DEM_SOURCE_ID = 4;
+  static readonly USV_SOURCE_ID = 5;
 
   readonly i18n = inject(I18nService);
 
@@ -48,7 +49,7 @@ export class NicheAnalysisStateService {
 
   // ===== Target =====
   targetSourceId: number | null = null;
-  covarsEnabledSourceIds: number[] | null = [1, 2, 4];
+  covarsEnabledSourceIds: number[] | null = [1, 2, 4, 5];
   regionId: number | null = null;
   /** Nombre legible de la región (ej. "Mexico") — se resuelve aparte porque
    *  region-selector solo emite el id numérico, no el nombre. */
