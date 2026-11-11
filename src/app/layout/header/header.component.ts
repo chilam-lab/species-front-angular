@@ -12,6 +12,7 @@ import { ReportIssueDialogComponent } from '../report-issue/report-issue-dialog.
  *  dando la impresión de que la navegación te regresaba ahí. Ahora se deriva de la URL. */
 // Claves de traducción (APP_I18N) del título/subtítulo según la sección.
 const SECTION_BY_PREFIX: { prefix: string; title: string; subtitle: string }[] = [
+  { prefix: '/redes', title: 'app.networks', subtitle: 'app.subtitle' },
   { prefix: '/perfil', title: 'app.account', subtitle: 'app.account.sub' },
   { prefix: '/login', title: 'app.account', subtitle: 'app.login.sub' },
   { prefix: '/register', title: 'app.account', subtitle: 'app.register.sub' },

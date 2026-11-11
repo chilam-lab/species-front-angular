@@ -21,6 +21,7 @@ import type { TaxonSelectorSnapshot } from 'taxon-selector';
 import type { TaxonNavigatorSnapshot } from 'taxon-navigator';
 import type { AnalysisHistoryMeta } from '../../../core/analysis-history/analysis-history.models';
 import type { IssueAnalysisContext } from '../../../core/issues/issue-context.service';
+import { buildQFromSplist, buildRelationQuery, buildSplistFrom, sourcesToRelationQueries } from './relation-query.utils';
 
 /**
  * Estado compartido del asistente de 3 pasos (Target / Covariables / Resultados).
@@ -262,30 +263,7 @@ export class NicheAnalysisStateService {
   }
 
   buildSplistFrom(payload: TaxonSelectionPayload): SplistItem[] {
-    const out: SplistItem[] = [];
-    const levels = Array.isArray(payload?.levels) ? payload.levels : [];
-    for (const lvl of levels) {
-      const nivelRaw = (lvl?.level ?? '').toString().trim();
-      const nivel = nivelRaw ? nivelRaw.toLowerCase() : '';
-      if (!nivel) continue;
-
-      const rawList =
-        (Array.isArray((lvl as any).values) && (lvl as any).values) ||
-        (Array.isArray((lvl as any).selected) && (lvl as any).selected) ||
-        (Array.isArray((lvl as any).items) && (lvl as any).items) ||
-        (typeof (lvl as any).value !== 'undefined' ? [(lvl as any).value] : []);
-
-      for (const it of rawList) {
-        let valor = '';
-        if (typeof it === 'string' || typeof it === 'number') {
-          valor = String(it).trim();
-        } else if (it && typeof it === 'object') {
-          valor = String((it as any).value ?? (it as any).name ?? (it as any).label ?? '').trim();
-        }
-        if (valor) out.push({ nivel, valor });
-      }
-    }
-    return out;
+    return buildSplistFrom(payload);
   }
 
   collectValidation(gridId: number | null, splist: SplistItem[]): string[] {
@@ -298,21 +276,7 @@ export class NicheAnalysisStateService {
   }
 
   buildQFromSplist(items: SplistItem[]): string {
-    const byNivel = new Map<string, string[]>();
-    for (const it of items || []) {
-      const nivel = String(it?.nivel ?? '').trim();
-      const valor = String(it?.valor ?? '').trim();
-      if (!nivel || !valor) continue;
-      const arr = byNivel.get(nivel) ?? [];
-      arr.push(valor);
-      byNivel.set(nivel, arr);
-    }
-    const parts: string[] = [];
-    byNivel.forEach((vals, nivel) => {
-      const uniq = Array.from(new Set(vals));
-      parts.push(`${nivel} = ${uniq.join(', ')}`);
-    });
-    return parts.join('; ');
+    return buildQFromSplist(items);
   }
 
   /** Etiqueta legible del nodo de arranque de una covariable de capas
@@ -327,7 +291,7 @@ export class NicheAnalysisStateService {
   }
 
   buildRelationQuery(q: string, id_source: number): RelationQuery {
-    return { id_source, q, offset: 0, limit: 100000 };
+    return buildRelationQuery(q, id_source);
   }
 
   private buildTargetQueries(): RelationQuery[] {
@@ -338,25 +302,7 @@ export class NicheAnalysisStateService {
   }
 
   private buildCovarsQueries(): RelationQuery[] {
-    const covarsQueries: RelationQuery[] = this.taxonSel2Sources
-      .map(src => {
-        const parts: string[] = [];
-        if (src.context?.idfuente != null) parts.push(`idfuente = ${src.context.idfuente}`);
-        if (src.context?.layer) parts.push(`layer = ${src.context.layer}`);
-
-        if (parts.length === 0) {
-          const splist = this.buildSplistFrom({ levels: src.levels });
-          if (splist.length === 0) return null;
-          const qBase = this.buildQFromSplist(splist);
-          if (!qBase) return null;
-          parts.push(qBase);
-        }
-
-        return this.buildRelationQuery(parts.join('; '), src.source_id);
-      })
-      .filter((item): item is RelationQuery => item !== null);
-
-    return [...covarsQueries, ...this.covarTerceros.map(c => this.buildTerceroRelationQuery(c))];
+    return [...sourcesToRelationQueries(this.taxonSel2Sources), ...this.covarTerceros.map(c => this.buildTerceroRelationQuery(c))];
   }
 
   /** Arma target+covars a partir del estado actual. En un "Re-ejecutar", cada

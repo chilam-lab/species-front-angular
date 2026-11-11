@@ -1,0 +1,98 @@
+<section class="card" style="padding:16px;">
+  <h2>{{ (grupo === 'fuente' ? 'red.g.fuente.title' : 'red.g.destino.title') | t }}</h2>
+  <p class="intro">{{ (grupo === 'fuente' ? 'red.g.fuente.intro' : 'red.g.destino.intro') | t }}</p>
+
+  <div class="covars-grid">
+    <div>
+      <!-- Área de estudio y fuente taxonómica: solo en Fuente; vale para los dos grupos. -->
+      <section class="card" style="margin:0 0 12px 0;" *ngIf="grupo === 'fuente'">
+        <h3>{{ 'red.g.area' | t }}</h3>
+        <app-region-selector
+          [enabledSourceIds]="taxonomySources"
+          [initialSourceId]="state.taxonomySourceId"
+          [initialRegionId]="state.regionId"
+          [initialGridId]="state.gridId"
+          (sourceSelected)="onSourceSelected($event)"
+          (regionSelected)="onRegionSelected($event)"
+          (resolutionSelected)="onResolutionSelected($event)"
+          (gridIdSelected)="onGridIdSelected($event)">
+        </app-region-selector>
+        <p class="hint">{{ 'red.g.areaHint' | t: { fuente: state.sourceLabel(state.taxonomySourceId) } }}</p>
+      </section>
+
+      <taxon-scope>
+        <section class="card" style="margin:0;">
+          <h3>{{ 'ni.c.selector' | t }}</h3>
+          <taxon-selector [enabledSourceIds]="state.enabledSourceIds"
+                          [initialState]="state.selectorState[grupo]"
+                          (stateChange)="state.selectorState[grupo] = $event"></taxon-selector>
+        </section>
+        <section class="card" style="margin:0;">
+          <h3>{{ 'ni.c.navigator' | t }}</h3>
+          <taxon-navigator [initialState]="state.navigatorState[grupo]"
+                           (stateChange)="state.navigatorState[grupo] = $event"
+                           (selectionChange)="onNavigatorSelectionChange($event)"></taxon-navigator>
+        </section>
+      </taxon-scope>
+    </div>
+
+    <!-- Columna derecha: lo elegido, filtros y (en Destino) opciones del análisis. -->
+    <div>
+      <section class="card side-panel" style="margin:0 0 12px 0;">
+        <h3>{{ (grupo === 'fuente' ? 'red.g.chosenFuente' : 'red.g.chosenDestino') | t }}</h3>
+        <p class="hint" *ngIf="chosen.length === 0">{{ 'red.g.none' | t }}</p>
+        <div class="alert-info chosen" *ngFor="let c of chosen">
+          <strong>{{ c.source }}:</strong> {{ c.q }}
+        </div>
+      </section>
+
+      <section class="card side-panel" style="margin:0 0 12px 0;" *ngIf="state.hasTaxonomy(grupo)">
+        <h3>{{ 'red.g.filters' | t: { fuente: state.sourceLabel(state.taxonomySourceId) } }}</h3>
+        <div class="filter-block">
+          <span class="filter-label">{{ 'ni.t.yearFilter' | t }}</span>
+          <div class="year-inputs">
+            <input type="number" min="1" [max]="maxYear" step="1" [placeholder]="'ni.t.from' | t"
+                   [(ngModel)]="selection.filters.fecha_inicio" (ngModelChange)="state.normalizeFilters(grupo)"
+                   name="fechaInicio" [attr.aria-label]="'ni.t.fromAria' | t">
+            <input type="number" min="1" [max]="maxYear" step="1" [placeholder]="'ni.t.to' | t"
+                   [(ngModel)]="selection.filters.fecha_fin" (ngModelChange)="state.normalizeFilters(grupo)"
+                   name="fechaFin" [attr.aria-label]="'ni.t.toAria' | t">
+          </div>
+        </div>
+        <label class="check">
+          <input type="checkbox" [(ngModel)]="selection.filters.sin_fecha" (ngModelChange)="state.invalidate()" name="sinFecha">
+          {{ 'ni.t.noDate' | t }}
+        </label>
+        <label class="check">
+          <input type="checkbox" [(ngModel)]="selection.filters.fosil" (ngModelChange)="state.invalidate()" name="fosil">
+          {{ 'ni.t.fossil' | t }}
+        </label>
+        <p class="error" *ngFor="let e of state.filtersErrors(grupo)" role="alert">{{ e }}</p>
+      </section>
+
+      <section class="card side-panel analysis-options" style="margin:0;" *ngIf="grupo === 'destino'">
+        <h3>{{ 'ni.c.options' | t }}</h3>
+        <div class="option-row">
+          <label for="minOcc">{{ 'red.o.minOcc' | t }}</label>
+          <input id="minOcc" type="number" min="0" step="1" class="nj-input" [(ngModel)]="state.minOcc" name="minOcc">
+        </div>
+        <p class="option-hint">{{ 'red.o.minOccHint' | t }}</p>
+        <div class="option-row">
+          <label for="minAbsEps">{{ 'red.o.eps' | t }}</label>
+          <input id="minAbsEps" type="number" min="0" step="0.5" class="nj-input" [(ngModel)]="state.minAbsEps" name="minAbsEps">
+        </div>
+        <p class="option-hint">{{ 'red.o.epsHint' | t: { n: (state.maxEdges | number) } }}</p>
+      </section>
+    </div>
+  </div>
+
+  <div class="card actions" style="margin-top:12px; gap: 12px;">
+    <button class="btn-primary" type="button" *ngIf="grupo === 'destino'" (click)="goBack()">{{ 'red.g.back' | t }}</button>
+    <button class="btn-primary" type="button" [disabled]="!canContinue" (click)="goNext()">
+      {{ (grupo === 'fuente' ? 'red.g.next' : 'red.g.run') | t }}
+    </button>
+  </div>
+  <p class="hint center" *ngIf="!canContinue">
+    {{ (grupo === 'fuente' ? 'red.g.needFuente' : 'red.g.needDestino') | t }}
+  </p>
+</section>

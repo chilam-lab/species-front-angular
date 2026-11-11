@@ -1,0 +1,86 @@
+<section class="card" style="padding:16px;">
+  <div class="loading" *ngIf="state.loading" aria-live="polite">
+    <span class="material-icons spin" aria-hidden="true">autorenew</span>{{ 'red.r.loading' | t }}
+  </div>
+
+  <div class="error-box" *ngIf="state.error && !state.loading" role="alert">
+    <p>{{ state.error }}</p>
+    <button type="button" class="btn-primary" (click)="retry()">{{ 'red.r.retry' | t }}</button>
+  </div>
+
+  <ng-container *ngIf="state.result as r">
+    <!-- Resumen del análisis -->
+    <div class="summary">
+      <span><strong>{{ r.stats.pares | number }}</strong> {{ 'red.r.pairs' | t }}</span>
+      <span><strong>{{ totalEdges | number }}</strong> {{ 'red.r.edges' | t: { eps: minAbsEps } }}</span>
+      <span *ngIf="totalEdges > edges.length" class="note">{{ 'red.r.drawn' | t: { n: (edges.length | number) } }}</span>
+      <span *ngIf="r.stats.destinos_descartados > 0" class="note">
+        {{ 'red.r.discarded' | t: { n: r.stats.destinos_descartados, min: r.min_occ } }}
+      </span>
+      <span class="note">{{ state.regionName || ('red.r.region' | t) }} · {{ state.resolution }} · n = {{ r.n | number }}</span>
+    </div>
+
+    <!-- Controles de exploración -->
+    <div class="controls">
+      <label class="eps">
+        {{ 'red.r.minEps' | t }}
+        <input type="range" min="0" max="15" step="0.5" [(ngModel)]="minAbsEps" (change)="applyFilter()" name="minAbsEps"
+               [attr.aria-label]="'red.r.minEps' | t" />
+        <strong>{{ minAbsEps }}</strong>
+      </label>
+      <label>
+        {{ 'red.r.sign' | t }}
+        <select [(ngModel)]="signo" (ngModelChange)="applyFilter()" name="signo">
+          <option *ngFor="let s of signos" [value]="s">{{ 'red.r.sign.' + s | t }}</option>
+        </select>
+      </label>
+      <span class="busy" *ngIf="filtering">{{ 'red.r.filtering' | t }}</span>
+      <a class="csv" *ngIf="csvUrl" [href]="csvUrl" target="_blank" rel="noopener">
+        <span class="material-icons" aria-hidden="true">download</span>{{ 'red.r.csv' | t }}
+      </a>
+    </div>
+
+    <div class="layout">
+      <red-species [nodes]="r.nodes" [edges]="edges" [colorBy]="colorBy" [sourceLabels]="sourceLabels"
+                   (colorByChange)="colorBy = $event" (nodeSelected)="onNode($event)" (edgeSelected)="onEdge($event)"
+                   height="640px"></red-species>
+
+      <aside class="panel">
+        <ng-container *ngIf="selectedNode as n">
+          <h3>{{ n.label }}</h3>
+          <p class="meta">
+            {{ 'red.r.node.' + n.grupo | t }} · {{ state.sourceLabel(n.id_source) }} · {{ 'red.r.cells' | t: { n: n.celdas } }}
+          </p>
+          <table>
+            <thead><tr><th>{{ 'red.r.neighbor' | t }}</th><th>ε</th><th>nij</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let v of neighbors" (click)="red?.focusNode(v.other)" tabindex="0" (keydown.enter)="red?.focusNode(v.other)">
+                <td>{{ label(v.other) }}</td>
+                <td [class.pos]="v.edge.epsilon > 0" [class.neg]="v.edge.epsilon < 0">{{ v.edge.epsilon | number: '1.2-2' }}</td>
+                <td>{{ v.edge.nij }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </ng-container>
+
+        <ng-container *ngIf="selectedEdge as e">
+          <h3>{{ label(e.source) }} → {{ label(e.target) }}</h3>
+          <dl>
+            <dt>ε</dt><dd [class.pos]="e.epsilon > 0" [class.neg]="e.epsilon < 0">{{ e.epsilon | number: '1.2-2' }}</dd>
+            <dt>score</dt><dd>{{ e.score | number: '1.2-2' }}</dd>
+            <dt>{{ 'red.r.nij' | t }}</dt><dd>{{ e.nij }}</dd>
+            <dt>{{ 'red.r.ni' | t }}</dt><dd>{{ e.ni }}</dd>
+            <dt>{{ 'red.r.nj' | t }}</dt><dd>{{ e.nj }}</dd>
+            <dt>{{ 'red.r.n' | t }}</dt><dd>{{ e.n }}</dd>
+          </dl>
+        </ng-container>
+
+        <p class="hint" *ngIf="!selectedNode && !selectedEdge">{{ 'red.r.panelHint' | t }}</p>
+      </aside>
+    </div>
+  </ng-container>
+
+  <div class="card actions" style="margin-top:12px;">
+    <button class="btn-primary" type="button" (click)="goBack()">{{ 'red.r.back' | t }}</button>
+  </div>
+</section>
