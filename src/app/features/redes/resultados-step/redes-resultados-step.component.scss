@@ -1,3 +1,78 @@
+/* Resumen: mismo estilo que el de Nicho (nicho-ecologico/resultados-step). */
+.summary-card { padding: 16px 18px; border-radius: 14px; }
+
+.summary-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  .material-icons { color: #006c49; font-size: 22px; }
+  h3 { margin: 0; font-size: 17px; }
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.field {
+  grid-column: span 2;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #e3e8ee;
+  border-radius: 12px;
+  background: #fafbfc;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field.half { grid-column: span 3; }
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+
+  .material-icons { font-size: 16px; color: #006c49; }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e3e8ee;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #0b1c30;
+  overflow-wrap: anywhere;
+
+  strong { font-weight: 600; color: #006c49; }
+}
+
+@media (max-width: 900px) {
+  .field, .field.half { grid-column: span 6; }
+}
+
+.btn-primary[disabled] { opacity: 0.55; cursor: default; }
+
 .loading {
   display: flex;
   align-items: center;

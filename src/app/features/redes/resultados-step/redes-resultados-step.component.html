@@ -1,4 +1,65 @@
 <section class="card" style="padding:16px;">
+  <h2>{{ 'red.s.heading' | t }}</h2>
+
+  <section class="card alert-info" *ngIf="state.isPreloaded('fuente') || state.isPreloaded('destino')" style="margin:0 0 12px 0;">
+    {{ 'red.s.preloaded' | t }}
+  </section>
+
+  <!-- Resumen de la configuración (mismo formato que el de Nicho) -->
+  <section class="card summary-card" style="margin:0 0 12px 0;">
+    <header class="summary-head">
+      <span class="material-icons" aria-hidden="true">fact_check</span>
+      <h3>{{ 'red.s.title' | t }}</h3>
+    </header>
+    <div class="summary-grid">
+      <div class="field third">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">storage</span>{{ 'red.s.source' | t }}</span>
+        <div class="chips"><span class="chip">{{ state.sourceLabel(state.taxonomySourceId) }}</span></div>
+      </div>
+      <div class="field third">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">public</span>{{ 'red.s.region' | t }}</span>
+        <div class="chips"><span class="chip">{{ state.regionName || state.regionId || '—' }}</span></div>
+      </div>
+      <div class="field third">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">grid_on</span>{{ 'red.s.resolution' | t }}</span>
+        <div class="chips"><span class="chip">{{ state.resolution || '—' }}</span></div>
+      </div>
+      <div class="field half">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">radio_button_checked</span>{{ 'red.s.fuente' | t }}</span>
+        <div class="chips">
+          <span class="chip" *ngFor="let c of groupChips('fuente')"><strong>{{ c.source }}</strong>{{ c.value }}</span>
+        </div>
+      </div>
+      <div class="field half">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">adjust</span>{{ 'red.s.destino' | t }}</span>
+        <div class="chips">
+          <span class="chip" *ngFor="let c of groupChips('destino')"><strong>{{ c.source }}</strong>{{ c.value }}</span>
+        </div>
+      </div>
+      <div class="field half">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">filter_alt</span>{{ 'red.s.filters' | t }}</span>
+        <div class="chips"><span class="chip" *ngFor="let c of filtersChips">{{ c }}</span></div>
+      </div>
+      <div class="field half">
+        <span class="field-label"><span class="material-icons" aria-hidden="true">tune</span>{{ 'red.s.options' | t }}</span>
+        <div class="chips"><span class="chip" *ngFor="let c of optionsChips">{{ c }}</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" *ngIf="state.validationMessages.length" style="margin:0 0 12px 0;">
+    <div class="alert-warning">
+      <ul><li *ngFor="let msg of state.validationMessages">{{ msg }}</li></ul>
+    </div>
+  </section>
+
+  <div class="card actions" style="margin-bottom:12px;">
+    <button class="btn-primary" type="button" (click)="generar()" [disabled]="!canGenerate"
+            [attr.aria-busy]="state.loading ? 'true' : 'false'">
+      {{ (state.loading ? 'red.s.running' : 'red.s.run') | t }}
+    </button>
+  </div>
+
   <div class="loading" *ngIf="state.loading" aria-live="polite">
     <span class="material-icons spin" aria-hidden="true">autorenew</span>{{ 'red.r.loading' | t }}
   </div>

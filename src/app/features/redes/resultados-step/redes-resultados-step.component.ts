@@ -9,6 +9,7 @@ import { I18nService, TranslatePipe } from 'taxon-shared';
 import { SOURCE_LABELS } from '../../nicho-ecologico/state/nicho-analysis.models';
 import { NetAnalysisStateService } from '../state/net-analysis-state.service';
 import { NetHistogramBin } from '../state/net-analysis.models';
+import { describeTargetFilters } from '../../nicho-ecologico/resultados-step/resultados-step.component';
 
 type Signo = 'ambos' | 'positivo' | 'negativo';
 type SortKey = 'source' | 'target' | 'nij' | 'nj' | 'ni' | 'epsilon' | 'score';
@@ -74,17 +75,25 @@ export class RedesResultadosStepComponent implements OnInit {
   page = 0;
   readonly pageSize = PAGE_SIZE;
 
+  /** Configuración que se va a calcular (null si falta algo: el guard lo evita). */
+  private pendingPayload = this.state.buildPayload();
+
   ngOnInit(): void {
+    // Como en Nicho, la red se calcula hasta dar clic en "Generar red". Si ya se
+    // calculó con esta misma configuración (vigente 1 h en el servidor), se muestra.
+    if (this.state.result && this.isCurrent()) this.showResult();
+    else this.state.result = null;
+  }
+
+  /** El resultado mostrado corresponde a la configuración actual. */
+  private isCurrent(): boolean {
+    return JSON.stringify(this.pendingPayload) === JSON.stringify(this.state.lastPayload);
+  }
+
+  generar(): void {
     const payload = this.state.buildPayload();
-    if (!payload) {
-      this.router.navigate(['/redes/destino']);
-      return;
-    }
-    // Misma configuración que el último cálculo: se reutiliza (vigente 1 h en el servidor).
-    if (this.state.result && JSON.stringify(payload) === JSON.stringify(this.state.lastPayload)) {
-      this.showResult();
-      return;
-    }
+    if (!payload || this.state.loading) return;
+    this.pendingPayload = payload;
     this.state.loading = true;
     this.state.error = null;
     this.state.result = null;
@@ -100,6 +109,47 @@ export class RedesResultadosStepComponent implements OnInit {
         this.state.error = e?.error?.codigo === 'snib_gbif' ? this.i18n.t('red.r.snibGbif') : this.i18n.t('red.r.error');
       },
     });
+  }
+
+  // ===== Resumen (igual que el de Nicho) =====
+
+  /** Una ficha por fuente de un grupo: "Género: Aedes", "Capa: bio001"… */
+  groupChips(group: 'fuente' | 'destino'): { source: string; value: string }[] {
+    return this.state.queries(group).flatMap(q =>
+      q.q.split(';').map(part => part.trim()).filter(Boolean).map(part => ({
+        source: this.state.sourceLabel(q.id_source),
+        value: this.prettyCondition(part),
+      })));
+  }
+
+  private prettyCondition(part: string): string {
+    const m = /^([\wáéíóúñ]+)\s*=\s*(.+)$/i.exec(part);
+    if (!m) return part;
+    const [, level, value] = m;
+    if (level.toLowerCase() === 'idfuente') return this.i18n.t('red.s.allLayers');
+    if (level.toLowerCase() === 'layer') return this.i18n.t('red.s.layer', { v: value });
+    return `${this.i18n.level(level).replace(/^./, ch => ch.toUpperCase())}: ${value}`;
+  }
+
+  get filtersChips(): string[] {
+    const out: string[] = [];
+    for (const g of ['fuente', 'destino'] as const) {
+      if (!this.state.hasTaxonomy(g)) continue;
+      out.push(this.i18n.t('red.s.filters.' + g, { v: describeTargetFilters(this.state.groups[g].filters, this.i18n) }));
+    }
+    return out.length ? out : [this.i18n.t('red.s.noFilters')];
+  }
+
+  get optionsChips(): string[] {
+    return [
+      this.i18n.t('red.s.minOcc', { n: this.state.minOcc }),
+      this.i18n.t('red.s.eps', { n: this.state.minAbsEps }),
+      this.i18n.t('red.s.maxEdges', { n: this.state.maxEdges.toLocaleString(this.i18n.locale()) }),
+    ];
+  }
+
+  get canGenerate(): boolean {
+    return this.state.canRun() && !this.state.loading;
   }
 
   private showResult(): void {
@@ -314,7 +364,6 @@ export class RedesResultadosStepComponent implements OnInit {
   }
 
   retry(): void {
-    this.state.lastPayload = null;
-    this.ngOnInit();
+    this.generar();
   }
 }
