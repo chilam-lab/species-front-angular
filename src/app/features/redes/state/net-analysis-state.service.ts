@@ -11,12 +11,15 @@ import { sourcesToRelationQueries } from '../../nicho-ecologico/state/relation-q
 import type { IssueAnalysisContext } from '../../../core/issues/issue-context.service';
 import type { AnalysisHistoryMeta } from '../../../core/analysis-history/analysis-history.models';
 import { AuthService } from '../../../core/auth/auth.service';
+import type { TerceroRef } from '../../../core/nicho-rerun/pending-tercero-selection.service';
 import { NetGroupSelection, NetPayload, NetResult } from './net-analysis.models';
 
 export type NetGroup = 'fuente' | 'destino';
 
 /** Fuentes de capas que se pueden combinar con SNIB o GBIF. */
 const LAYER_SOURCE_IDS = [2, 4, 5];
+/** Fuentes taxonómicas: las únicas con filtros de fecha y fósiles. */
+const TAXONOMY_SOURCE_IDS = [1, 3];
 
 /**
  * Estado del asistente de Redes de inferencia (Fuente → Destino → Resultados).
@@ -54,6 +57,8 @@ export class NetAnalysisStateService {
   /** Consultas de una red cargada del historial ("Re-ejecutar"); valen mientras el
    *  usuario no vuelva a elegir variables en ese grupo (igual que en Nicho). */
   readonly preloaded: Record<NetGroup, RelationQuery[] | null> = { fuente: null, destino: null };
+  /** Colecciones propias ("Mis datos") de cada grupo; se agregan desde Mi cuenta. */
+  readonly terceros: Record<NetGroup, TerceroRef[]> = { fuente: [], destino: [] };
 
   // ===== Opciones =====
   /** Mínimo de celdas de los nodos destino (nj > minOcc), como la versión estable. */
@@ -119,7 +124,23 @@ export class NetAnalysisStateService {
   }
 
   queries(group: NetGroup): RelationQuery[] {
-    return this.preloaded[group] ?? sourcesToRelationQueries(this.groups[group].sources);
+    const fromSelector = this.preloaded[group] ?? sourcesToRelationQueries(this.groups[group].sources);
+    return [...fromSelector, ...this.terceros[group].map(t => this.terceroQuery(t))];
+  }
+
+  /** Colección propia como consulta: middleware_datasources la resuelve con la sesión. */
+  private terceroQuery(t: TerceroRef): RelationQuery {
+    return { id_source: 'terceros', id_data: t.id_data, q: `${this.i18n.t('ni.myData')}: ${t.nombre_datos}`, offset: 0, limit: 0 };
+  }
+
+  setTerceros(group: NetGroup, list: TerceroRef[]): void {
+    const seen = new Set<number>();
+    this.terceros[group] = list.filter(t => !seen.has(t.id_data) && !!seen.add(t.id_data));
+    this.invalidate();
+  }
+
+  removeTercero(group: NetGroup, id_data: number): void {
+    this.setTerceros(group, this.terceros[group].filter(t => t.id_data !== id_data));
   }
 
   isPreloaded(group: NetGroup): boolean {
@@ -127,20 +148,30 @@ export class NetAnalysisStateService {
   }
 
   hasTaxonomy(group: NetGroup): boolean {
-    return this.queries(group).some(q => !LAYER_SOURCE_IDS.includes(Number(q.id_source)));
+    return this.queries(group).some(q => TAXONOMY_SOURCE_IDS.includes(Number(q.id_source)));
   }
 
   /** Carga una red del historial: área, grupos, filtros y opciones. */
   loadPreloaded(payload: NetPayload, meta: AnalysisHistoryMeta | null): void {
-    const taxo = [...payload.source, ...payload.target].map(q => Number(q.id_source)).find(id => !LAYER_SOURCE_IDS.includes(id));
+    const taxo = [...payload.source, ...payload.target].map(q => Number(q.id_source)).find(id => TAXONOMY_SOURCE_IDS.includes(id));
     this.taxonomySourceId = meta?.taxonomySourceId ?? taxo ?? NetAnalysisStateService.SNIB_SOURCE_ID;
     this.enabledSourceIds = [this.taxonomySourceId, ...LAYER_SOURCE_IDS];
     this.gridId = payload.grid_id;
     this.regionId = meta?.regionId ?? null;
     this.regionName = meta?.region ?? null;
     this.resolution = meta?.resolution ?? null;
-    this.preloaded.fuente = payload.source;
-    this.preloaded.destino = payload.target;
+    // Las colecciones propias se separan para poder quitarlas igual que al agregarlas.
+    const split = (qs: RelationQuery[]) => ({
+      catalog: qs.filter(q => q.id_source !== 'terceros'),
+      terceros: qs.filter(q => q.id_source === 'terceros' && q.id_data != null)
+        .map(q => ({ id_data: q.id_data!, nombre_datos: q.q.replace(/^[^:]*:\s*/, '') })),
+    });
+    const f = split(payload.source);
+    const d = split(payload.target);
+    this.preloaded.fuente = f.catalog.length ? f.catalog : null;
+    this.preloaded.destino = d.catalog.length ? d.catalog : null;
+    this.terceros.fuente = f.terceros;
+    this.terceros.destino = d.terceros;
     this.groups.fuente = { sources: [], filters: { ...DEFAULT_TARGET_FILTERS, ...(payload.source_filters ?? {}) } };
     this.groups.destino = { sources: [], filters: { ...DEFAULT_TARGET_FILTERS, ...(payload.target_filters ?? {}) } };
     this.selectorState.fuente = this.selectorState.destino = null;

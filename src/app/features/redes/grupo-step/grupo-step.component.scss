@@ -17,6 +17,7 @@
 .side-panel {
   h3 { margin-top: 0; }
   .chosen { margin-bottom: 6px; font-size: 0.85rem; word-break: break-word; }
+  .tercero { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.85rem; }
 }
 
 .filter-block {

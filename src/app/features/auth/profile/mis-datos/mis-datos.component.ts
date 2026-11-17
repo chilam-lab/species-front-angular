@@ -7,8 +7,11 @@ import { I18nService, TranslatePipe } from 'taxon-shared';
 import { MisDatosService } from '../../../../core/mis-datos/mis-datos.service';
 import { DataCollectionRow, OccUploadRow } from '../../../../core/mis-datos/mis-datos.models';
 import { PendingTerceroSelectionService, TerceroRef } from '../../../../core/nicho-rerun/pending-tercero-selection.service';
+import { PendingNetTerceroService } from '../../../../core/redes-rerun/pending-net-tercero.service';
 
-type UsoRole = 'ninguno' | 'target' | 'covariable';
+type UsoRole = 'ninguno' | 'target' | 'covariable' | 'fuente' | 'destino';
+/** Módulo donde se usarán las colecciones; cambia los roles que se ofrecen. */
+type UsoModulo = 'nicho' | 'redes';
 
 const CHAR_FORMAT = /[`!@#$%^&*()+=\[\]{};'"\\|,<>?~]/;
 const FIXED_COLUMNS = ['occurrenceid', 'decimallatitude', 'decimallongitude', 'eventdate'];
@@ -79,9 +82,29 @@ export class MisDatosComponent implements OnInit {
    *  un solo paso, sin perder la elección al navegar entre filas. */
   roleSelections: Record<number, UsoRole> = {};
 
+  /** Nicho: Target (una) y Covariable (varias). Redes: Fuente y Destino (varias en cada uno). */
+  modulo: UsoModulo = 'nicho';
+  readonly rolesPorModulo: Record<UsoModulo, UsoRole[]> = {
+    nicho: ['ninguno', 'target', 'covariable'],
+    redes: ['ninguno', 'fuente', 'destino'],
+  };
+
+  /** Clave de traducción de cada rol (data.role.*). */
+  roleKey(role: UsoRole): string {
+    const keys: Record<UsoRole, string> = { ninguno: 'none', target: 'target', covariable: 'covar', fuente: 'fuente', destino: 'destino' };
+    return 'data.role.' + keys[role];
+  }
+
+  /** Al cambiar de módulo los roles del otro ya no aplican. */
+  setModulo(modulo: UsoModulo): void {
+    this.modulo = modulo;
+    this.roleSelections = {};
+  }
+
   constructor(
     private misDatos: MisDatosService,
     private pendingTercero: PendingTerceroSelectionService,
+    private pendingNetTercero: PendingNetTerceroService,
     private router: Router
   ) {}
 
@@ -115,6 +138,19 @@ export class MisDatosComponent implements OnInit {
       const row = this.collections.find((c) => c.id === id);
       return row ? { id_data: row.id, nombre_datos: row.nombre_datos } : null;
     };
+
+    if (this.modulo === 'redes') {
+      const refs = (role: UsoRole) => Object.keys(this.roleSelections).map(Number)
+        .filter((id) => this.roleSelections[id] === role)
+        .map(toRef).filter((r): r is TerceroRef => r !== null);
+      const fuente = refs('fuente');
+      const destino = refs('destino');
+      if (fuente.length === 0 && destino.length === 0) return;
+      // El paso Fuente de Redes las recoge al abrirse.
+      this.pendingNetTercero.set({ fuente, destino });
+      this.router.navigateByUrl('/redes/fuente');
+      return;
+    }
 
     const targetId = Object.keys(this.roleSelections)
       .map(Number)

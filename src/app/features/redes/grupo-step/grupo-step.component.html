@@ -47,6 +47,15 @@
         </div>
       </section>
 
+      <section class="card side-panel" style="margin:0 0 12px 0;">
+        <h3>{{ 'red.g.terceros' | t }}</h3>
+        <div class="alert-info tercero" *ngFor="let c of state.terceros[grupo]">
+          <span>{{ c.nombre_datos }}</span>
+          <button type="button" class="btn-primary" (click)="state.removeTercero(grupo, c.id_data)">{{ 'ni.remove' | t }}</button>
+        </div>
+        <p class="hint">{{ 'red.g.tercerosHint' | t }}</p>
+      </section>
+
       <section class="card side-panel" style="margin:0 0 12px 0;" *ngIf="state.hasTaxonomy(grupo)">
         <h3>{{ 'red.g.filters' | t: { fuente: state.sourceLabel(state.taxonomySourceId) } }}</h3>
         <div class="filter-block">

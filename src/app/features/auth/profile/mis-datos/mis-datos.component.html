@@ -61,10 +61,22 @@
 
   <div *ngIf="loadingList">{{ 'ni.loading' | t }}</div>
 
+  <fieldset class="modulo" *ngIf="!loadingList && collections.length > 0">
+    <legend>{{ 'data.module' | t }}</legend>
+    <label>
+      <input type="radio" name="modulo" [checked]="modulo === 'nicho'" (change)="setModulo('nicho')" />
+      {{ 'nav.niche' | t }}
+    </label>
+    <label>
+      <input type="radio" name="modulo" [checked]="modulo === 'redes'" (change)="setModulo('redes')" />
+      {{ 'nav.networks' | t }}
+    </label>
+  </fieldset>
+
   <table *ngIf="!loadingList && collections.length > 0">
     <thead>
       <tr>
-        <th>{{ 'data.use' | t }}</th>
+        <th>{{ (modulo === 'redes' ? 'data.useNet' : 'data.use') | t }}</th>
         <th>{{ 'data.colName' | t }}</th>
         <th>{{ 'data.loaded' | t }}</th>
         <th>{{ 'data.expires' | t }}</th>
@@ -75,17 +87,9 @@
     <tbody>
       <tr *ngFor="let col of collections">
         <td class="uso-radios">
-          <label>
-            <input type="radio" [name]="'uso-' + col.id" [checked]="getRole(col.id) === 'ninguno'" (change)="setRole(col.id, 'ninguno')" />
-            {{ 'data.role.none' | t }}
-          </label>
-          <label>
-            <input type="radio" [name]="'uso-' + col.id" [checked]="getRole(col.id) === 'target'" (change)="setRole(col.id, 'target')" />
-            {{ 'data.role.target' | t }}
-          </label>
-          <label>
-            <input type="radio" [name]="'uso-' + col.id" [checked]="getRole(col.id) === 'covariable'" (change)="setRole(col.id, 'covariable')" />
-            {{ 'data.role.covar' | t }}
+          <label *ngFor="let role of rolesPorModulo[modulo]">
+            <input type="radio" [name]="'uso-' + col.id" [checked]="getRole(col.id) === role" (change)="setRole(col.id, role)" />
+            {{ roleKey(role) | t }}
           </label>
         </td>
         <td>{{ col.nombre_datos }}</td>
@@ -100,7 +104,7 @@
   </table>
 
   <button type="button" class="secondary" *ngIf="!loadingList && collections.length > 0" [disabled]="!hasSelection" (click)="usarMiSeleccion()">
-    {{ 'data.useSelection' | t }}
+    {{ (modulo === 'redes' ? 'data.useSelectionNet' : 'data.useSelection') | t }}
   </button>
 
   <p *ngIf="!loadingList && collections.length === 0">{{ 'data.empty' | t }}</p>

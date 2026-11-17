@@ -9,6 +9,7 @@ import { TaxonScopeComponent } from 'taxon-scope';
 import { TranslatePipe } from 'taxon-shared';
 import { TaxonSelectionPayload } from '../../nicho-ecologico/state/nicho-analysis.models';
 import { NetAnalysisStateService, NetGroup } from '../state/net-analysis-state.service';
+import { PendingNetTerceroService } from '../../../core/redes-rerun/pending-net-tercero.service';
 
 /**
  * Paso Fuente o Destino del asistente de Redes (lo indica la ruta en data.grupo).
@@ -28,6 +29,15 @@ export class GrupoStepComponent {
   readonly grupo: NetGroup = inject(ActivatedRoute).snapshot.data['grupo'] === 'destino' ? 'destino' : 'fuente';
   readonly maxYear = new Date().getFullYear();
   readonly taxonomySources = [NetAnalysisStateService.SNIB_SOURCE_ID, NetAnalysisStateService.GBIF_SOURCE_ID];
+
+  constructor() {
+    // Colecciones elegidas en Mi cuenta > Mis datos para esta red (se agregan a lo que ya hubiera).
+    const pending = inject(PendingNetTerceroService).consume();
+    if (pending) {
+      this.state.setTerceros('fuente', [...this.state.terceros.fuente, ...pending.fuente]);
+      this.state.setTerceros('destino', [...this.state.terceros.destino, ...pending.destino]);
+    }
+  }
 
   get selection() {
     return this.state.groups[this.grupo];
