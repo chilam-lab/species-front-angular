@@ -3,21 +3,34 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RedColorMode, RedEdge, RedNode, RedSpeciesComponent } from 'red-species';
+import { MapaMaplibreComponent } from 'mapa-maplibre';
+import { HistogramChartComponent } from 'histogram-chart';
 import { I18nService, TranslatePipe } from 'taxon-shared';
 import { SOURCE_LABELS } from '../../nicho-ecologico/state/nicho-analysis.models';
 import { NetAnalysisStateService } from '../state/net-analysis-state.service';
+import { NetHistogramBin } from '../state/net-analysis.models';
 
 type Signo = 'ambos' | 'positivo' | 'negativo';
+type SortKey = 'source' | 'target' | 'nij' | 'nj' | 'ni' | 'epsilon' | 'score';
+
+/** Valor "occ" de la rampa del mapa (amarillo → rojo) para cada tipo de celda. */
+const OCC_FUENTE = 1;
+const OCC_DESTINO = 3;
+const OCC_COMPARTIDA = 8;
+/** Barras máximas del histograma; con más, se juntan de dos en dos. */
+const MAX_HIST_BARS = 40;
+const PAGE_SIZE = 25;
 
 /**
  * Resultados de la red: se calcula al entrar (solo si la configuración cambió
- * desde el último cálculo) y se explora sin recalcular: umbral de |ε| y signo
- * piden otras aristas a /mdf/getNetEdges.
+ * desde el último cálculo) y se explora sin recalcular. Red, mapa, histograma y
+ * tabla están enlazados: elegir un nodo o una arista en la red o en la tabla
+ * muestra sus celdas en el mapa y filtra/resalta la tabla.
  */
 @Component({
   selector: 'app-redes-resultados-step',
   standalone: true,
-  imports: [CommonModule, FormsModule, RedSpeciesComponent, TranslatePipe],
+  imports: [CommonModule, FormsModule, RedSpeciesComponent, MapaMaplibreComponent, HistogramChartComponent, TranslatePipe],
   templateUrl: './redes-resultados-step.component.html',
   styleUrls: ['./redes-resultados-step.component.scss'],
 })
@@ -29,6 +42,7 @@ export class RedesResultadosStepComponent implements OnInit {
 
   readonly sourceLabels: Record<string, string> = { ...SOURCE_LABELS } as Record<string, string>;
   readonly signos: Signo[] = ['ambos', 'positivo', 'negativo'];
+  readonly occColors = { fuente: '#ffd54f', destino: '#ff9800', compartida: '#d32f2f' };
 
   edges: RedEdge[] = [];
   totalEdges = 0;
@@ -40,6 +54,25 @@ export class RedesResultadosStepComponent implements OnInit {
   selectedNode: RedNode | null = null;
   selectedEdge: RedEdge | null = null;
   private nodeIndex = new Map<string, RedNode>();
+
+  // ===== Mapa =====
+  mapOcc: { cell_id: number; occ: number }[] = [];
+  mapRun = 0;
+  mapLoading = false;
+  mapCounts: { fuente: number; destino: number; compartida: number } | null = null;
+
+  // ===== Histograma =====
+  histData: { label: string; value: number }[] = [];
+  /** Pares con |ε| ≥ umbral según el histograma (todos los pares, no solo los dibujados). */
+  histAboveThreshold = 0;
+  private histBins: NetHistogramBin[] = [];
+
+  // ===== Tabla =====
+  search = '';
+  sortKey: SortKey = 'epsilon';
+  sortDesc = true;
+  page = 0;
+  readonly pageSize = PAGE_SIZE;
 
   ngOnInit(): void {
     const payload = this.state.buildPayload();
@@ -76,6 +109,9 @@ export class RedesResultadosStepComponent implements OnInit {
     this.totalEdges = r.total_edges;
     this.minAbsEps = r.min_abs_eps;
     this.signo = 'ambos';
+    this.histBins = this.compactBins(r.stats.histograma);
+    this.updateHistogram();
+    this.clearSelection();
   }
 
   /** Otro umbral o signo, sin recalcular la red. */
@@ -83,7 +119,14 @@ export class RedesResultadosStepComponent implements OnInit {
     if (!this.state.result) return;
     this.filtering = true;
     this.state.edges(this.minAbsEps, this.signo).subscribe({
-      next: (r) => { this.edges = r.edges; this.totalEdges = r.total_edges; this.filtering = false; },
+      next: (r) => {
+        this.edges = r.edges;
+        this.totalEdges = r.total_edges;
+        this.filtering = false;
+        this.page = 0;
+        this.updateHistogram();
+        if (this.selectedEdge && !this.edges.includes(this.selectedEdge)) this.clearSelection();
+      },
       error: (e) => {
         this.filtering = false;
         this.state.error = e?.error?.codigo === 'expirado' ? this.i18n.t('red.r.expired') : this.i18n.t('red.r.error');
@@ -91,11 +134,116 @@ export class RedesResultadosStepComponent implements OnInit {
     });
   }
 
+  // ===== Histograma de ε (todos los pares) =====
+
+  /** Junta barras vecinas de dos en dos hasta que queden ≤ MAX_HIST_BARS. */
+  private compactBins(bins: NetHistogramBin[]): NetHistogramBin[] {
+    let out = bins.slice();
+    while (out.length > MAX_HIST_BARS) {
+      const merged: NetHistogramBin[] = [];
+      for (let i = 0; i < out.length; i += 2) {
+        const a = out[i];
+        const b = out[i + 1];
+        merged.push(b ? { desde: a.desde, hasta: b.hasta, count: a.count + b.count } : a);
+      }
+      out = merged;
+    }
+    return out;
+  }
+
+  /** Etiqueta de cada barra; las que pasan el umbral se marcan con ●. */
+  private updateHistogram(): void {
+    const passes = (b: NetHistogramBin) => {
+      const pos = this.signo !== 'negativo' && b.desde >= this.minAbsEps;
+      const neg = this.signo !== 'positivo' && b.hasta <= -this.minAbsEps;
+      return pos || neg;
+    };
+    this.histAboveThreshold = this.histBins.filter(passes).reduce((s, b) => s + b.count, 0);
+    this.histData = this.histBins.map(b => ({
+      label: `${passes(b) ? '● ' : ''}${b.desde.toFixed(1)} a ${b.hasta.toFixed(1)}`,
+      value: b.count,
+    }));
+  }
+
+  // ===== Selección enlazada (red ↔ mapa ↔ tabla) =====
+
   label(id: string): string {
     return this.nodeIndex.get(id)?.label ?? id;
   }
 
-  /** Vecinos del nodo seleccionado, por |ε|. */
+  onNode(n: RedNode | null): void {
+    this.selectedNode = n;
+    this.selectedEdge = null;
+    this.page = 0;
+    if (n) this.loadNodeCells(n);
+    else this.clearMap();
+  }
+
+  onEdge(e: RedEdge | null): void {
+    this.selectedEdge = e;
+    if (e) {
+      this.selectedNode = null;
+      this.loadEdgeCells(e);
+    } else {
+      this.clearMap();
+    }
+  }
+
+  /** Clic en una fila de la tabla: selecciona la arista y centra la red en su nodo fuente. */
+  selectRow(e: RedEdge): void {
+    const keepNode = this.selectedNode;
+    this.onEdge(e);
+    this.selectedNode = keepNode; // la tabla sigue filtrada por el nodo si lo había
+    this.red?.focusNode(e.source);
+  }
+
+  clearSelection(): void {
+    this.selectedNode = null;
+    this.selectedEdge = null;
+    this.clearMap();
+  }
+
+  private clearMap(): void {
+    this.mapOcc = [];
+    this.mapCounts = null;
+    this.mapRun++;
+  }
+
+  private loadNodeCells(n: RedNode): void {
+    this.mapLoading = true;
+    this.state.cells([n.id]).subscribe({
+      next: (r) => {
+        const occ = n.grupo === 'fuente' ? OCC_FUENTE : OCC_DESTINO;
+        this.mapOcc = (r.cells[n.id] ?? []).map(c => ({ cell_id: c, occ }));
+        this.mapCounts = null;
+        this.mapRun++;
+        this.mapLoading = false;
+      },
+      error: () => { this.mapLoading = false; },
+    });
+  }
+
+  private loadEdgeCells(e: RedEdge): void {
+    this.mapLoading = true;
+    this.state.cells([e.source, e.target]).subscribe({
+      next: (r) => {
+        const shared = new Set(r.interseccion ?? []);
+        const fuente = (r.cells[e.source] ?? []).filter(c => !shared.has(c));
+        const destino = (r.cells[e.target] ?? []).filter(c => !shared.has(c));
+        this.mapOcc = [
+          ...fuente.map(c => ({ cell_id: c, occ: OCC_FUENTE })),
+          ...destino.map(c => ({ cell_id: c, occ: OCC_DESTINO })),
+          ...[...shared].map(c => ({ cell_id: c, occ: OCC_COMPARTIDA })),
+        ];
+        this.mapCounts = { fuente: fuente.length, destino: destino.length, compartida: shared.size };
+        this.mapRun++;
+        this.mapLoading = false;
+      },
+      error: () => { this.mapLoading = false; },
+    });
+  }
+
+  /** Vecinos del nodo seleccionado, por |ε| (panel). */
   get neighbors(): { other: string; edge: RedEdge }[] {
     const n = this.selectedNode;
     if (!n) return [];
@@ -106,14 +254,55 @@ export class RedesResultadosStepComponent implements OnInit {
       .slice(0, 100);
   }
 
-  onNode(n: RedNode | null): void {
-    this.selectedNode = n;
-    if (n) this.selectedEdge = null;
+  // ===== Tabla de aristas =====
+
+  private tableCache: { key: string; edges: RedEdge[]; rows: RedEdge[] } | null = null;
+
+  /** Aristas de la tabla: las del nodo seleccionado (si hay), la búsqueda y el orden.
+   *  Memorizado: con miles de aristas no se reordena en cada detección de cambios. */
+  get tableRows(): RedEdge[] {
+    const key = `${this.selectedNode?.id ?? ''}|${this.search}|${this.sortKey}|${this.sortDesc}`;
+    if (this.tableCache && this.tableCache.key === key && this.tableCache.edges === this.edges) return this.tableCache.rows;
+    const rows = this.computeTableRows();
+    this.tableCache = { key, edges: this.edges, rows };
+    return rows;
   }
 
-  onEdge(e: RedEdge | null): void {
-    this.selectedEdge = e;
-    if (e) this.selectedNode = null;
+  private computeTableRows(): RedEdge[] {
+    const n = this.selectedNode;
+    const q = this.search.trim().toLowerCase();
+    let rows = this.edges;
+    if (n) rows = rows.filter(e => e.source === n.id || e.target === n.id);
+    if (q) rows = rows.filter(e => this.label(e.source).toLowerCase().includes(q) || this.label(e.target).toLowerCase().includes(q));
+    const key = this.sortKey;
+    const dir = this.sortDesc ? -1 : 1;
+    const val = (e: RedEdge) => (key === 'source' || key === 'target') ? this.label(e[key]).toLowerCase() : e[key];
+    return [...rows].sort((a, b) => {
+      const va = val(a);
+      const vb = val(b);
+      return (va < vb ? -1 : va > vb ? 1 : 0) * dir;
+    });
+  }
+
+  get pageRows(): RedEdge[] {
+    return this.tableRows.slice(this.page * PAGE_SIZE, (this.page + 1) * PAGE_SIZE);
+  }
+
+  get pageCount(): number {
+    return Math.max(1, Math.ceil(this.tableRows.length / PAGE_SIZE));
+  }
+
+  setSort(key: SortKey): void {
+    if (this.sortKey === key) this.sortDesc = !this.sortDesc;
+    else {
+      this.sortKey = key;
+      this.sortDesc = key !== 'source' && key !== 'target';
+    }
+    this.page = 0;
+  }
+
+  sortIcon(key: SortKey): string {
+    return this.sortKey !== key ? 'unfold_more' : this.sortDesc ? 'expand_more' : 'expand_less';
   }
 
   get csvUrl(): string | null {

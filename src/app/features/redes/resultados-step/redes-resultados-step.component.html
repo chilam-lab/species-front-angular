@@ -40,30 +40,14 @@
       </a>
     </div>
 
+    <!-- Red + detalle -->
     <div class="layout">
       <red-species [nodes]="r.nodes" [edges]="edges" [colorBy]="colorBy" [sourceLabels]="sourceLabels"
                    (colorByChange)="colorBy = $event" (nodeSelected)="onNode($event)" (edgeSelected)="onEdge($event)"
-                   height="640px"></red-species>
+                   height="600px"></red-species>
 
       <aside class="panel">
-        <ng-container *ngIf="selectedNode as n">
-          <h3>{{ n.label }}</h3>
-          <p class="meta">
-            {{ 'red.r.node.' + n.grupo | t }} · {{ state.sourceLabel(n.id_source) }} · {{ 'red.r.cells' | t: { n: n.celdas } }}
-          </p>
-          <table>
-            <thead><tr><th>{{ 'red.r.neighbor' | t }}</th><th>ε</th><th>nij</th></tr></thead>
-            <tbody>
-              <tr *ngFor="let v of neighbors" (click)="red?.focusNode(v.other)" tabindex="0" (keydown.enter)="red?.focusNode(v.other)">
-                <td>{{ label(v.other) }}</td>
-                <td [class.pos]="v.edge.epsilon > 0" [class.neg]="v.edge.epsilon < 0">{{ v.edge.epsilon | number: '1.2-2' }}</td>
-                <td>{{ v.edge.nij }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </ng-container>
-
-        <ng-container *ngIf="selectedEdge as e">
+        <ng-container *ngIf="selectedEdge as e; else nodePanel">
           <h3>{{ label(e.source) }} → {{ label(e.target) }}</h3>
           <dl>
             <dt>ε</dt><dd [class.pos]="e.epsilon > 0" [class.neg]="e.epsilon < 0">{{ e.epsilon | number: '1.2-2' }}</dd>
@@ -74,10 +58,112 @@
             <dt>{{ 'red.r.n' | t }}</dt><dd>{{ e.n }}</dd>
           </dl>
         </ng-container>
-
-        <p class="hint" *ngIf="!selectedNode && !selectedEdge">{{ 'red.r.panelHint' | t }}</p>
+        <ng-template #nodePanel>
+          <ng-container *ngIf="selectedNode as n; else hint">
+            <h3>{{ n.label }}</h3>
+            <p class="meta">
+              {{ 'red.r.node.' + n.grupo | t }} · {{ state.sourceLabel(n.id_source) }} · {{ 'red.r.cells' | t: { n: n.celdas } }}
+            </p>
+            <table>
+              <thead><tr><th>{{ 'red.r.neighbor' | t }}</th><th>ε</th><th>nij</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let v of neighbors" (click)="selectRow(v.edge)" tabindex="0" (keydown.enter)="selectRow(v.edge)">
+                  <td>{{ label(v.other) }}</td>
+                  <td [class.pos]="v.edge.epsilon > 0" [class.neg]="v.edge.epsilon < 0">{{ v.edge.epsilon | number: '1.2-2' }}</td>
+                  <td>{{ v.edge.nij }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </ng-container>
+        </ng-template>
+        <ng-template #hint><p class="hint">{{ 'red.r.panelHint' | t }}</p></ng-template>
       </aside>
     </div>
+
+    <!-- Mapa de celdas + histograma de ε -->
+    <div class="layout two">
+      <section class="map-card" style="margin:0;">
+        <h3>{{ 'red.m.title' | t }}</h3>
+        <p class="hint" *ngIf="!selectedNode && !selectedEdge">{{ 'red.m.hint' | t }}</p>
+        <p class="map-sub" *ngIf="selectedEdge as e">{{ label(e.source) }} → {{ label(e.target) }}</p>
+        <p class="map-sub" *ngIf="!selectedEdge && selectedNode as n">{{ n.label }} · {{ 'red.r.cells' | t: { n: n.celdas } }}</p>
+        <div class="map-wrap">
+          <app-mapa-maplibre [mapId]="'map-redes'" [gridId]="state.gridId!" [occValues]="mapOcc" [run]="mapRun"
+                             [showLayerControl]="true" [controlBaseLayer]="true" [controlScoreLayer]="false"
+                             [loading]="mapLoading" [showDownload]="true" [downloadFileName]="'red_celdas'"></app-mapa-maplibre>
+        </div>
+        <div class="map-legend" *ngIf="selectedEdge || selectedNode">
+          <ng-container *ngIf="selectedEdge; else nodeLegend">
+            <span><i [style.background]="occColors.fuente"></i>{{ 'red.m.fuente' | t: { n: mapCounts?.fuente ?? 0 } }}</span>
+            <span><i [style.background]="occColors.destino"></i>{{ 'red.m.destino' | t: { n: mapCounts?.destino ?? 0 } }}</span>
+            <span><i [style.background]="occColors.compartida"></i>{{ 'red.m.compartida' | t: { n: mapCounts?.compartida ?? 0 } }}</span>
+          </ng-container>
+          <ng-template #nodeLegend>
+            <span><i [style.background]="selectedNode?.grupo === 'fuente' ? occColors.fuente : occColors.destino"></i>{{ 'red.m.nodo' | t }}</span>
+          </ng-template>
+        </div>
+      </section>
+
+      <section class="card hist-card" style="margin:0;">
+        <ui-histogram-chart [useCustomData]="true" [customData]="histData" [height]="360"
+                            [title]="'red.h.title' | t" [xLabel]="'red.h.x' | t" [yLabel]="'red.h.y' | t"
+                            [infoTitle]="'red.h.title' | t" [info]="'red.h.info' | t"></ui-histogram-chart>
+        <p class="hint">{{ 'red.h.above' | t: { n: (histAboveThreshold | number), eps: minAbsEps } }}</p>
+      </section>
+    </div>
+
+    <!-- Tabla de aristas -->
+    <section class="edges-table">
+      <div class="table-head">
+        <h3>
+          {{ 'red.t.title' | t }}
+          <span class="filtered" *ngIf="selectedNode as n">
+            · {{ n.label }}
+            <button type="button" class="link" (click)="onNode(null)">{{ 'red.t.all' | t }}</button>
+          </span>
+        </h3>
+        <input type="search" [(ngModel)]="search" (ngModelChange)="page = 0" name="search"
+               [placeholder]="'red.t.search' | t" [attr.aria-label]="'red.t.search' | t" />
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th (click)="setSort('source')">{{ 'red.t.fuente' | t }} <span class="material-icons">{{ sortIcon('source') }}</span></th>
+              <th (click)="setSort('target')">{{ 'red.t.destino' | t }} <span class="material-icons">{{ sortIcon('target') }}</span></th>
+              <th class="num" (click)="setSort('nij')">nij <span class="material-icons">{{ sortIcon('nij') }}</span></th>
+              <th class="num" (click)="setSort('nj')">nj <span class="material-icons">{{ sortIcon('nj') }}</span></th>
+              <th class="num" (click)="setSort('ni')">ni <span class="material-icons">{{ sortIcon('ni') }}</span></th>
+              <th class="num" (click)="setSort('epsilon')">ε <span class="material-icons">{{ sortIcon('epsilon') }}</span></th>
+              <th class="num" (click)="setSort('score')">score <span class="material-icons">{{ sortIcon('score') }}</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of pageRows" (click)="selectRow(e)" tabindex="0" (keydown.enter)="selectRow(e)"
+                [class.selected]="e === selectedEdge">
+              <td>{{ label(e.source) }}</td>
+              <td>{{ label(e.target) }}</td>
+              <td class="num">{{ e.nij }}</td>
+              <td class="num">{{ e.nj }}</td>
+              <td class="num">{{ e.ni }}</td>
+              <td class="num" [class.pos]="e.epsilon > 0" [class.neg]="e.epsilon < 0">{{ e.epsilon | number: '1.2-2' }}</td>
+              <td class="num">{{ e.score | number: '1.2-2' }}</td>
+            </tr>
+            <tr *ngIf="pageRows.length === 0"><td colspan="7" class="hint">{{ 'red.t.empty' | t }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <span>{{ 'red.t.count' | t: { n: (tableRows.length | number) } }}</span>
+        <button type="button" (click)="page = page - 1" [disabled]="page === 0" [attr.aria-label]="'red.t.prev' | t">
+          <span class="material-icons" aria-hidden="true">chevron_left</span>
+        </button>
+        <span>{{ page + 1 }} / {{ pageCount }}</span>
+        <button type="button" (click)="page = page + 1" [disabled]="page + 1 >= pageCount" [attr.aria-label]="'red.t.next' | t">
+          <span class="material-icons" aria-hidden="true">chevron_right</span>
+        </button>
+      </div>
+    </section>
   </ng-container>
 
   <div class="card actions" style="margin-top:12px;">

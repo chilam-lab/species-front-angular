@@ -184,6 +184,12 @@ export class NetAnalysisStateService {
     });
   }
 
+  /** Celdas de uno o dos nodos; con dos, también las que comparten (la arista). */
+  cells(nodeIds: string[]): Observable<{ cells: Record<string, number[]>; interseccion: number[] | null }> {
+    return this.http.post<{ cells: Record<string, number[]>; interseccion: number[] | null }>(
+      `${environment.apiBaseUrl}/mdf/getNetCells`, { uuid: this.result?.uuid, nodes: nodeIds });
+  }
+
   csvUrl(minAbsEps: number): string | null {
     return this.result ? `${environment.apiBaseUrl}/mdf/getNetCsv?uuid=${this.result.uuid}&min_abs_eps=${minAbsEps}` : null;
   }
