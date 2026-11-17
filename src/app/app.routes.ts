@@ -11,11 +11,6 @@ export const routes: Routes = [
     loadChildren: () => import('./features/redes/redes.routes').then(m => m.redesRoutes)
   },
   {
-    // Prueba de la librería red-species (fase 2 de Redes); la reemplaza el asistente de Redes.
-    path: 'redes/prueba',
-    loadComponent: () => import('./features/redes/prueba/red-prueba.component').then(m => m.RedPruebaComponent)
-  },
-  {
     path: '',
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.authRoutes)
   }

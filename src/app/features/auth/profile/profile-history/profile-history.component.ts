@@ -5,6 +5,8 @@ import { Router } from '@angular/router';
 import { AnalysisHistoryService } from '../../../../core/analysis-history/analysis-history.service';
 import { AnalysisHistoryRow } from '../../../../core/analysis-history/analysis-history.models';
 import { PendingRerunService } from '../../../../core/nicho-rerun/pending-rerun.service';
+import { PendingNetRerunService } from '../../../../core/redes-rerun/pending-net-rerun.service';
+import type { NetPayload } from '../../../redes/state/net-analysis.models';
 import { SOURCE_LABELS } from '../../../nicho-ecologico/state/nicho-analysis.models';
 import { describeTargetFilters } from '../../../nicho-ecologico/resultados-step/resultados-step.component';
 
@@ -31,6 +33,7 @@ export class ProfileHistoryComponent implements OnInit {
   constructor(
     private history: AnalysisHistoryService,
     private pendingRerun: PendingRerunService,
+    private pendingNetRerun: PendingNetRerunService,
     private router: Router
   ) {}
 
@@ -54,6 +57,15 @@ export class ProfileHistoryComponent implements OnInit {
     });
   }
 
+  /** Red de inferencia (las filas sin marca son de Nicho Ecológico). */
+  isNet(row: AnalysisHistoryRow): boolean {
+    return row.meta?.tipo === 'redes' || row.payload?.tipo === 'redes';
+  }
+
+  typeLabel(row: AnalysisHistoryRow): string {
+    return this.i18n.t(this.isNet(row) ? 'hist.type.redes' : 'hist.type.nicho');
+  }
+
   /** Fuente / región / resolución legibles, capturadas al momento de ejecutar
    *  (columna meta). Filas guardadas antes de que existiera meta muestran '—'
    *  en región/resolución, pero igual resuelven la fuente desde el payload. */
@@ -75,6 +87,15 @@ export class ProfileHistoryComponent implements OnInit {
     return row.payload?.target?.[0]?.q || this.i18n.t('ni.none');
   }
 
+  /** Redes: una línea por grupo de nodos ("Fuente — SNIB: genero = Aedes"). */
+  netLines(row: AnalysisHistoryRow, group: 'fuente' | 'destino'): string[] {
+    const saved = row.meta?.[group];
+    const lines = saved?.length
+      ? saved.map(l => `${l.source}: ${l.values}`)
+      : ((group === 'fuente' ? row.payload?.source : row.payload?.target) ?? []).map(q => `${this.sourceLabel(q.id_source)}: ${q.q}`);
+    return lines.length ? lines : ['—'];
+  }
+
   /** Una línea por covariable. */
   covarsLines(row: AnalysisHistoryRow): string[] {
     if (row.meta?.covars?.length) {
@@ -92,6 +113,14 @@ export class ProfileHistoryComponent implements OnInit {
    *  probabilidad). Análisis anteriores a esas opciones no las traen. */
   optionsLines(row: AnalysisHistoryRow): string[] {
     const p = row.payload;
+    if (this.isNet(row)) {
+      return [
+        this.i18n.t('hist.net.minOcc', { n: p?.min_occ ?? 5 }),
+        this.i18n.t('hist.net.eps', { n: p?.min_abs_eps ?? 2 }),
+        ...(p?.source_filters ? [this.i18n.t('hist.net.filtersFuente', { v: describeTargetFilters(p.source_filters, this.i18n) })] : []),
+        ...(p?.target_filters ? [this.i18n.t('hist.net.filtersDestino', { v: describeTargetFilters(p.target_filters, this.i18n) })] : []),
+      ];
+    }
     const t = (k: string, prm?: Record<string, string | number>) => this.i18n.t(k, prm);
     const yn = (b: unknown) => t(b ? 'ni.yes' : 'ni.no');
     if (!p || (p.min_nj === undefined && p.apriori === undefined && p.mapa_prob === undefined && !p.target_filters)) return ['—'];
@@ -109,6 +138,13 @@ export class ProfileHistoryComponent implements OnInit {
    *  lista: targetMapGeneratedGuard consume el payload pendiente y solo falta
    *  dar clic en "Ejecutar Análisis" ahí. */
   rerun(row: AnalysisHistoryRow): void {
+    if (this.isNet(row)) {
+      // Redes: el asistente carga la red guardada y la calcula al entrar a Resultados.
+      const { tipo, ...payload } = row.payload as unknown as NetPayload & { tipo: string };
+      this.pendingNetRerun.set(payload, row.meta);
+      this.router.navigateByUrl('/redes/resultados');
+      return;
+    }
     this.pendingRerun.set(row.payload, row.meta);
     this.router.navigateByUrl('/nicho-ecologico/resultados');
   }

@@ -40,6 +40,7 @@
     <div>
       <section class="card side-panel" style="margin:0 0 12px 0;">
         <h3>{{ (grupo === 'fuente' ? 'red.g.chosenFuente' : 'red.g.chosenDestino') | t }}</h3>
+        <p class="hint preloaded" *ngIf="state.isPreloaded(grupo)">{{ 'red.g.preloaded' | t }}</p>
         <p class="hint" *ngIf="chosen.length === 0">{{ 'red.g.none' | t }}</p>
         <div class="alert-info chosen" *ngFor="let c of chosen">
           <strong>{{ c.source }}:</strong> {{ c.q }}

@@ -94,3 +94,15 @@
     margin-bottom: 1rem;
   }
 }
+
+.type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  background: #e8f5e9;
+  color: #1b5e20;
+
+  &.net { background: #e3f2fd; color: #0d47a1; }
+}

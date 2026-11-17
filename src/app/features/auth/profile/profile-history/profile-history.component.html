@@ -10,6 +10,7 @@
     <thead>
       <tr>
         <th>{{ 'hist.date' | t }}</th>
+        <th>{{ 'hist.type' | t }}</th>
         <th>{{ 'hist.context' | t }}</th>
         <th>{{ 'hist.target' | t }}</th>
         <th>{{ 'hist.covars' | t }}</th>
@@ -20,13 +21,26 @@
     <tbody>
       <tr *ngFor="let row of rows">
         <td class="nowrap">{{ fmtDate(row.fecha_creacion) }}</td>
+        <td><span class="type-badge" [class.net]="isNet(row)">{{ typeLabel(row) }}</span></td>
         <td>
           <div *ngFor="let line of contextLines(row)">{{ line }}</div>
         </td>
-        <td class="wrap">{{ targetSummary(row) }}</td>
-        <td class="wrap">
-          <div class="line" *ngFor="let line of covarsLines(row)">{{ line }}</div>
-        </td>
+        <ng-container *ngIf="isNet(row); else nicheCols">
+          <td class="wrap">
+            <div class="line"><strong>{{ 'hist.net.fuente' | t }}</strong></div>
+            <div class="line" *ngFor="let line of netLines(row, 'fuente')">{{ line }}</div>
+          </td>
+          <td class="wrap">
+            <div class="line"><strong>{{ 'hist.net.destino' | t }}</strong></div>
+            <div class="line" *ngFor="let line of netLines(row, 'destino')">{{ line }}</div>
+          </td>
+        </ng-container>
+        <ng-template #nicheCols>
+          <td class="wrap">{{ targetSummary(row) }}</td>
+          <td class="wrap">
+            <div class="line" *ngFor="let line of covarsLines(row)">{{ line }}</div>
+          </td>
+        </ng-template>
         <td class="wrap">
           <div class="line" *ngFor="let line of optionsLines(row)">{{ line }}</div>
         </td>

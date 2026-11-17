@@ -6,9 +6,11 @@ import type { TaxonSelectorSnapshot } from 'taxon-selector';
 import type { TaxonNavigatorSnapshot } from 'taxon-navigator';
 import type { RedEdge } from 'red-species';
 import { environment } from '../../../../environments/environment';
-import { DEFAULT_TARGET_FILTERS, SOURCE_LABELS, TargetFilters } from '../../nicho-ecologico/state/nicho-analysis.models';
+import { DEFAULT_TARGET_FILTERS, RelationQuery, SOURCE_LABELS, TargetFilters } from '../../nicho-ecologico/state/nicho-analysis.models';
 import { sourcesToRelationQueries } from '../../nicho-ecologico/state/relation-query.utils';
 import type { IssueAnalysisContext } from '../../../core/issues/issue-context.service';
+import type { AnalysisHistoryMeta } from '../../../core/analysis-history/analysis-history.models';
+import { AuthService } from '../../../core/auth/auth.service';
 import { NetGroupSelection, NetPayload, NetResult } from './net-analysis.models';
 
 export type NetGroup = 'fuente' | 'destino';
@@ -31,6 +33,7 @@ export class NetAnalysisStateService {
   static readonly GBIF_SOURCE_ID = 3;
 
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
   readonly i18n = inject(I18nService);
 
   // ===== Área =====
@@ -48,6 +51,9 @@ export class NetAnalysisStateService {
   /** Estado visual de selector/navegador por grupo, para restaurarlos al volver a un paso. */
   readonly selectorState: Record<NetGroup, TaxonSelectorSnapshot | null> = { fuente: null, destino: null };
   readonly navigatorState: Record<NetGroup, TaxonNavigatorSnapshot | null> = { fuente: null, destino: null };
+  /** Consultas de una red cargada del historial ("Re-ejecutar"); valen mientras el
+   *  usuario no vuelva a elegir variables en ese grupo (igual que en Nicho). */
+  readonly preloaded: Record<NetGroup, RelationQuery[] | null> = { fuente: null, destino: null };
 
   // ===== Opciones =====
   /** Mínimo de celdas de los nodos destino (nj > minOcc), como la versión estable. */
@@ -93,6 +99,8 @@ export class NetAnalysisStateService {
     this.enabledSourceIds = [id, ...LAYER_SOURCE_IDS];
     for (const g of ['fuente', 'destino'] as NetGroup[]) {
       this.groups[g].sources = this.groups[g].sources.filter(s => LAYER_SOURCE_IDS.includes(s.source_id));
+      const pre = this.preloaded[g];
+      if (pre) this.preloaded[g] = pre.filter(q => LAYER_SOURCE_IDS.includes(Number(q.id_source)));
       this.selectorState[g] = null;
       this.navigatorState[g] = null;
     }
@@ -101,6 +109,7 @@ export class NetAnalysisStateService {
 
   setGroupSources(group: NetGroup, sources: NetGroupSelection['sources']): void {
     this.groups[group].sources = sources.filter(s => this.enabledSourceIds.includes(s.source_id));
+    this.preloaded[group] = null; // elegir aquí reemplaza lo cargado del historial
     this.invalidate();
   }
 
@@ -109,12 +118,37 @@ export class NetAnalysisStateService {
     this.validationMessages = [];
   }
 
-  queries(group: NetGroup) {
-    return sourcesToRelationQueries(this.groups[group].sources);
+  queries(group: NetGroup): RelationQuery[] {
+    return this.preloaded[group] ?? sourcesToRelationQueries(this.groups[group].sources);
+  }
+
+  isPreloaded(group: NetGroup): boolean {
+    return this.preloaded[group] !== null;
   }
 
   hasTaxonomy(group: NetGroup): boolean {
-    return this.groups[group].sources.some(s => !LAYER_SOURCE_IDS.includes(s.source_id));
+    return this.queries(group).some(q => !LAYER_SOURCE_IDS.includes(Number(q.id_source)));
+  }
+
+  /** Carga una red del historial: área, grupos, filtros y opciones. */
+  loadPreloaded(payload: NetPayload, meta: AnalysisHistoryMeta | null): void {
+    const taxo = [...payload.source, ...payload.target].map(q => Number(q.id_source)).find(id => !LAYER_SOURCE_IDS.includes(id));
+    this.taxonomySourceId = meta?.taxonomySourceId ?? taxo ?? NetAnalysisStateService.SNIB_SOURCE_ID;
+    this.enabledSourceIds = [this.taxonomySourceId, ...LAYER_SOURCE_IDS];
+    this.gridId = payload.grid_id;
+    this.regionId = meta?.regionId ?? null;
+    this.regionName = meta?.region ?? null;
+    this.resolution = meta?.resolution ?? null;
+    this.preloaded.fuente = payload.source;
+    this.preloaded.destino = payload.target;
+    this.groups.fuente = { sources: [], filters: { ...DEFAULT_TARGET_FILTERS, ...(payload.source_filters ?? {}) } };
+    this.groups.destino = { sources: [], filters: { ...DEFAULT_TARGET_FILTERS, ...(payload.target_filters ?? {}) } };
+    this.selectorState.fuente = this.selectorState.destino = null;
+    this.navigatorState.fuente = this.navigatorState.destino = null;
+    this.minOcc = payload.min_occ ?? 5;
+    this.minAbsEps = payload.min_abs_eps ?? 2;
+    this.result = null;
+    this.lastPayload = null;
   }
 
   /** Filtros solo si el grupo tiene SNIB/GBIF (las capas no tienen fecha ni fósiles). */
@@ -173,8 +207,21 @@ export class NetAnalysisStateService {
     };
   }
 
+  /** Calcula la red; con sesión, el backend la guarda en el historial con este resumen legible. */
   run(payload: NetPayload): Observable<NetResult> {
-    return this.http.post<NetResult>(`${environment.apiBaseUrl}/mdf/getNetRelation`, payload);
+    const lines = (g: NetGroup) => this.queries(g).map(q => ({ source: this.sourceLabel(q.id_source), values: q.q }));
+    const meta: AnalysisHistoryMeta = {
+      tipo: 'redes',
+      taxonomySourceId: this.taxonomySourceId,
+      regionId: this.regionId,
+      targetSourceLabel: this.sourceLabel(this.taxonomySourceId),
+      region: this.regionName ?? undefined,
+      resolution: this.resolution ?? undefined,
+      fuente: lines('fuente'),
+      destino: lines('destino'),
+    };
+    return this.http.post<NetResult>(`${environment.apiBaseUrl}/mdf/getNetRelation`,
+      { ...payload, sessionid: this.auth.sessionIdOrNull, meta });
   }
 
   /** Aristas con otro umbral, sin recalcular la red. */
