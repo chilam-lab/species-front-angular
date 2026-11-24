@@ -26,7 +26,7 @@
     "graphology": "^0.26.0",
     "graphology-communities-louvain": "^2.0.2",
     "graphology-layout-forceatlas2": "^0.10.1",
-    "histogram-chart": "file:local-packages/histogram-chart-0.0.6.tgz",
+    "histogram-chart": "file:local-packages/histogram-chart-0.0.7.tgz",
     "mapa-maplibre": "file:local-packages/mapa-maplibre-0.0.17.tgz",
     "maplibre-gl": "^5.6.1",
     "red-species": "file:local-packages/red-species-0.0.2.tgz",

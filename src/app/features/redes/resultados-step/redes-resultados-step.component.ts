@@ -201,6 +201,23 @@ export class RedesResultadosStepComponent implements OnInit {
     return out;
   }
 
+  /** Clic en una barra: el umbral |ε| pasa al borde de esa barra más cercano
+   *  a cero (redondeado hacia abajo al paso del slider) y se vuelve a filtrar.
+   *  Si la barra es del signo que hoy se oculta, el signo pasa a "ambos". */
+  onHistBar(ev: { index: number }): void {
+    const b = this.histBins[ev.index];
+    if (!b || this.filtering) return;
+    const near = b.desde >= 0 ? b.desde : b.hasta <= 0 ? -b.hasta : 0;
+    const eps = Math.min(15, Math.max(0, Math.floor(near * 2) / 2));
+    const isPos = b.desde >= 0;
+    const isNeg = b.hasta <= 0;
+    const hidden = (this.signo === 'positivo' && isNeg && !isPos) || (this.signo === 'negativo' && isPos && !isNeg);
+    if (eps === this.minAbsEps && !hidden) return;
+    this.minAbsEps = eps;
+    if (hidden) this.signo = 'ambos';
+    this.applyFilter();
+  }
+
   /** Etiqueta de cada barra; las que pasan el umbral se marcan con ●. */
   private updateHistogram(): void {
     const passes = (b: NetHistogramBin) => {

@@ -168,7 +168,8 @@
       <section class="card hist-card" style="margin:0;">
         <ui-histogram-chart [useCustomData]="true" [customData]="histData" [height]="360"
                             [title]="'red.h.title' | t" [xLabel]="'red.h.x' | t" [yLabel]="'red.h.y' | t"
-                            [infoTitle]="'red.h.title' | t" [info]="'red.h.info' | t"></ui-histogram-chart>
+                            [infoTitle]="'red.h.title' | t" [info]="'red.h.info' | t"
+                            (barSelected)="onHistBar($event)"></ui-histogram-chart>
         <p class="hint">{{ 'red.h.above' | t: { n: (histAboveThreshold | number), eps: minAbsEps } }}</p>
       </section>
     </div>
