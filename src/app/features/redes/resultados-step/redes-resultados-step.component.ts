@@ -67,6 +67,10 @@ export class RedesResultadosStepComponent implements OnInit {
   /** Pares con |ε| ≥ umbral según el histograma (todos los pares, no solo los dibujados). */
   histAboveThreshold = 0;
   private histBins: NetHistogramBin[] = [];
+  /** Barra elegida en el histograma: la red muestra solo las aristas de ese rango de ε. */
+  barRange: NetHistogramBin | null = null;
+  /** La barra elegida cae entera bajo el |ε| mínimo que se guarda: no hay aristas que mostrar. */
+  barNotStored = false;
 
   // ===== Tabla =====
   search = '';
@@ -159,16 +163,24 @@ export class RedesResultadosStepComponent implements OnInit {
     this.totalEdges = r.total_edges;
     this.minAbsEps = r.min_abs_eps;
     this.signo = 'ambos';
+    this.barRange = null;
+    this.barNotStored = false;
     this.histBins = this.compactBins(r.stats.histograma);
     this.updateHistogram();
     this.clearSelection();
   }
 
-  /** Otro umbral o signo, sin recalcular la red. */
+  /** Otro umbral o signo, sin recalcular la red (y sin la barra elegida). */
   applyFilter(): void {
+    this.barRange = null;
+    this.barNotStored = false;
+    this.loadEdges();
+  }
+
+  private loadEdges(): void {
     if (!this.state.result) return;
     this.filtering = true;
-    this.state.edges(this.minAbsEps, this.signo).subscribe({
+    this.state.edges(this.minAbsEps, this.signo, this.barRange).subscribe({
       next: (r) => {
         this.edges = r.edges;
         this.totalEdges = r.total_edges;
@@ -201,20 +213,35 @@ export class RedesResultadosStepComponent implements OnInit {
     return out;
   }
 
-  /** Clic en una barra: el umbral |ε| pasa al borde de esa barra más cercano
-   *  a cero (redondeado hacia abajo al paso del slider) y se vuelve a filtrar.
-   *  Si la barra es del signo que hoy se oculta, el signo pasa a "ambos". */
+  /** Clic en una barra: la red, el mapa y la tabla muestran solo las aristas
+   *  con ε en el rango de esa barra. Otro clic en la misma barra lo quita. */
   onHistBar(ev: { index: number }): void {
     const b = this.histBins[ev.index];
     if (!b || this.filtering) return;
-    const near = b.desde >= 0 ? b.desde : b.hasta <= 0 ? -b.hasta : 0;
-    const eps = Math.min(15, Math.max(0, Math.floor(near * 2) / 2));
-    const isPos = b.desde >= 0;
-    const isNeg = b.hasta <= 0;
-    const hidden = (this.signo === 'positivo' && isNeg && !isPos) || (this.signo === 'negativo' && isPos && !isNeg);
-    if (eps === this.minAbsEps && !hidden) return;
-    this.minAbsEps = eps;
-    if (hidden) this.signo = 'ambos';
+    if (this.barRange && this.barRange.desde === b.desde && this.barRange.hasta === b.hasta) {
+      this.clearBar();
+      return;
+    }
+    this.barRange = b;
+    this.barNotStored = Math.max(Math.abs(b.desde), Math.abs(b.hasta)) <= this.minStoredEps;
+    if (this.barNotStored) {
+      this.edges = [];
+      this.totalEdges = 0;
+      this.page = 0;
+      this.clearSelection();
+      this.updateHistogram();
+      return;
+    }
+    this.loadEdges();
+  }
+
+  /** Las aristas con |ε| bajo este corte no se guardan (solo cuentan en el histograma). */
+  get minStoredEps(): number {
+    return this.state.result?.stats.min_abs_eps_guardado ?? 1;
+  }
+
+  /** Quita la barra elegida y vuelve al umbral y signo actuales. */
+  clearBar(): void {
     this.applyFilter();
   }
 
@@ -226,8 +253,12 @@ export class RedesResultadosStepComponent implements OnInit {
       return pos || neg;
     };
     this.histAboveThreshold = this.histBins.filter(passes).reduce((s, b) => s + b.count, 0);
+    // Con una barra elegida solo esa se marca (▶); si no, las que pasan el umbral (●).
+    const mark = (b: NetHistogramBin) => this.barRange
+      ? (b.desde === this.barRange.desde && b.hasta === this.barRange.hasta ? '▶ ' : '')
+      : (passes(b) ? '● ' : '');
     this.histData = this.histBins.map(b => ({
-      label: `${passes(b) ? '● ' : ''}${b.desde.toFixed(1)} a ${b.hasta.toFixed(1)}`,
+      label: `${mark(b)}${b.desde.toFixed(1)} a ${b.hasta.toFixed(1)}`,
       value: b.count,
     }));
   }

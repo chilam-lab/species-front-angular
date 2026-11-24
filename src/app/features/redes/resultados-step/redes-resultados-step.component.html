@@ -73,7 +73,8 @@
     <!-- Resumen del análisis -->
     <div class="summary">
       <span><strong>{{ r.stats.pares | number }}</strong> {{ 'red.r.pairs' | t }}</span>
-      <span><strong>{{ totalEdges | number }}</strong> {{ 'red.r.edges' | t: { eps: minAbsEps } }}</span>
+      <span *ngIf="!barRange"><strong>{{ totalEdges | number }}</strong> {{ 'red.r.edges' | t: { eps: minAbsEps } }}</span>
+      <span *ngIf="barRange as b"><strong>{{ totalEdges | number }}</strong> {{ 'red.r.edgesBar' | t: { a: (b.desde | number: '1.1-1'), b: (b.hasta | number: '1.1-1') } }}</span>
       <span *ngIf="totalEdges > edges.length" class="note">{{ 'red.r.drawn' | t: { n: (edges.length | number) } }}</span>
       <span *ngIf="r.stats.destinos_descartados > 0" class="note">
         {{ 'red.r.discarded' | t: { n: r.stats.destinos_descartados, min: r.min_occ } }}
@@ -170,7 +171,12 @@
                             [title]="'red.h.title' | t" [xLabel]="'red.h.x' | t" [yLabel]="'red.h.y' | t"
                             [infoTitle]="'red.h.title' | t" [info]="'red.h.info' | t"
                             (barSelected)="onHistBar($event)"></ui-histogram-chart>
-        <p class="hint">{{ 'red.h.above' | t: { n: (histAboveThreshold | number), eps: minAbsEps } }}</p>
+        <p class="hint" *ngIf="!barRange">{{ 'red.h.above' | t: { n: (histAboveThreshold | number), eps: minAbsEps } }}</p>
+        <p class="bar-note" *ngIf="barRange as b">
+          <span>{{ 'red.h.bar' | t: { a: (b.desde | number: '1.1-1'), b: (b.hasta | number: '1.1-1'), n: (b.count | number) } }}</span>
+          <span *ngIf="barNotStored" class="warn">{{ 'red.h.notStored' | t: { eps: minStoredEps } }}</span>
+          <button type="button" class="link" (click)="clearBar()">{{ 'red.h.clearBar' | t }}</button>
+        </p>
       </section>
     </div>
 

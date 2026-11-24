@@ -255,10 +255,13 @@ export class NetAnalysisStateService {
       { ...payload, sessionid: this.auth.sessionIdOrNull, meta });
   }
 
-  /** Aristas con otro umbral, sin recalcular la red. */
-  edges(minAbsEps: number, signo: 'ambos' | 'positivo' | 'negativo' = 'ambos'): Observable<{ total_edges: number; edges: RedEdge[] }> {
+  /** Aristas con otro umbral, sin recalcular la red. Con range (una barra del
+   *  histograma) solo las de range.desde ≤ ε < range.hasta; umbral y signo se ignoran. */
+  edges(minAbsEps: number, signo: 'ambos' | 'positivo' | 'negativo' = 'ambos',
+        range: { desde: number; hasta: number } | null = null): Observable<{ total_edges: number; edges: RedEdge[] }> {
     return this.http.post<{ total_edges: number; edges: RedEdge[] }>(`${environment.apiBaseUrl}/mdf/getNetEdges`, {
       uuid: this.result?.uuid, min_abs_eps: minAbsEps, signo, limit: this.maxEdges,
+      ...(range ? { eps_desde: range.desde, eps_hasta: range.hasta } : {}),
     });
   }
 

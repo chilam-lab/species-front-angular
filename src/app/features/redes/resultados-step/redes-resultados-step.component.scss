@@ -1,10 +1,18 @@
+/* Tablas del panel y de aristas: filas clicables. */
+.panel, .edges-table {
+  table { width: 100%; border-collapse: collapse; }
+  tbody tr { cursor: pointer; &:hover, &:focus { background: #f4f8f6; outline: none; } }
+}
+
+/* Botón con aspecto de enlace (tabla e histograma). */
+.link { background: none; border: none; color: #006c49; text-decoration: underline; cursor: pointer; font: inherit; padding: 0; }
+
 /* Signo de ε (panel y tabla). */
 .pos { color: #2e7d32; }
 .neg { color: #c62828; }
 
 /* La tarjeta de resumen (.summary-card) está en src/styles.scss, compartida con Nicho. */
 
-.btn-primary[disabled] { opacity: 0.55; cursor: default; }
 
 .loading {
   display: flex;
@@ -83,9 +91,7 @@
   .meta { color: #666; margin: 0 0 10px; }
   .hint { color: #777; margin: 0; }
 
-  table { width: 100%; border-collapse: collapse; }
   th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #eee; }
-  tbody tr { cursor: pointer; &:hover, &:focus { background: #f4f8f6; outline: none; } }
 
   dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
   dt { color: #666; }
@@ -123,7 +129,11 @@
   i { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0, 0, 0, 0.15); display: inline-block; }
 }
 
-.hist-card .hint { color: #666; font-size: 0.8rem; margin: 6px 0 0; }
+.hist-card {
+  .hint { color: #666; font-size: 0.8rem; margin: 6px 0 0; }
+  .bar-note { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 6px 0 0; font-size: 0.82rem; }
+  .warn { color: #8a5a00; }
+}
 
 .edges-table {
   margin-top: 16px;
@@ -145,10 +155,9 @@
     input { font: inherit; padding: 5px 8px; border: 1px solid #c8c8c8; border-radius: 4px; min-width: 220px; }
   }
 
-  .link { background: none; border: none; color: #006c49; text-decoration: underline; cursor: pointer; font: inherit; padding: 0 0 0 6px; }
+  .link { padding-left: 6px; }
 
   .table-scroll { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; }
   th {
     text-align: left;
     padding: 6px;
@@ -161,7 +170,6 @@
   }
   td { padding: 5px 6px; border-bottom: 1px solid #eee; }
   .num { text-align: right; }
-  tbody tr { cursor: pointer; &:hover, &:focus { background: #f4f8f6; outline: none; } }
   tbody tr.selected { background: #e3f2ec; }
   .pos, .neg { font-weight: 600; }
   .hint { color: #777; text-align: center; padding: 12px; }
