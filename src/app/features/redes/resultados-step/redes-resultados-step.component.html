@@ -100,6 +100,7 @@
       <a class="csv" *ngIf="csvUrl" [href]="csvUrl" target="_blank" rel="noopener">
         <span class="material-icons" aria-hidden="true">download</span>{{ 'red.r.csv' | t }}
       </a>
+      <p class="ctl-hint">{{ 'red.r.minEpsHint' | t: { eps: minStoredEps } }}</p>
     </div>
 
     <!-- Red + detalle -->
@@ -172,6 +173,7 @@
                             [infoTitle]="'red.h.title' | t" [info]="'red.h.info' | t"
                             (barSelected)="onHistBar($event)"></ui-histogram-chart>
         <p class="hint" *ngIf="!barRange">{{ 'red.h.above' | t: { n: (histAboveThreshold | number), eps: minAbsEps } }}</p>
+        <p class="hint">{{ 'red.h.clickHint' | t: { eps: minStoredEps } }}</p>
         <p class="bar-note" *ngIf="barRange as b">
           <span>{{ 'red.h.bar' | t: { a: (b.desde | number: '1.1-1'), b: (b.hasta | number: '1.1-1'), n: (b.count | number) } }}</span>
           <span *ngIf="barNotStored" class="warn">{{ 'red.h.notStored' | t: { eps: minStoredEps } }}</span>

@@ -1,5 +1,9 @@
 /* Tablas del panel y de aristas: filas clicables. */
 .panel, .edges-table {
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.85rem;
   table { width: 100%; border-collapse: collapse; }
   tbody tr { cursor: pointer; &:hover, &:focus { background: #f4f8f6; outline: none; } }
 }
@@ -59,6 +63,7 @@
   label { display: flex; align-items: center; gap: 8px; }
   select { font: inherit; padding: 3px 6px; }
   .busy { color: #777; }
+  .ctl-hint { flex-basis: 100%; margin: 0; color: #666; font-size: .8rem; }
 
   .csv {
     margin-left: auto;
@@ -80,12 +85,8 @@
 }
 
 .panel {
-  border: 1px solid #e2e2e2;
-  border-radius: 8px;
-  padding: 12px;
   max-height: 640px;
   overflow-y: auto;
-  font-size: 0.85rem;
 
   h3 { margin: 0 0 4px; font-size: 1rem; }
   .meta { color: #666; margin: 0 0 10px; }
@@ -112,10 +113,8 @@
   .map-sub { margin: 0 0 6px; font-size: 0.85rem; font-weight: 600; }
 }
 
-.map-wrap {
-  height: 380px;
-  position: relative;
-}
+/* position: relative ya viene de .map-wrap en src/styles.scss. */
+.map-wrap { height: 380px; }
 
 .map-legend {
   display: flex;
@@ -137,10 +136,6 @@
 
 .edges-table {
   margin-top: 16px;
-  border: 1px solid #e2e2e2;
-  border-radius: 8px;
-  padding: 12px;
-  font-size: 0.85rem;
 
   .table-head {
     display: flex;
